@@ -1,11 +1,23 @@
 Package: hyspdisp
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Run HYSPLIT many times in parallel, aggregate to zip code level
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
+Author: person("Lucas", "Henneman", email = "lhenneman@gmail.com", role = c("aut", "cre"))
+Authors@R: c(
+    person("Lucas", "Henneman", role = c("aut", "cre")
+    person("Christine", "Choirat", role = "aut"),
+    )
+Maintainer: Lucas Henneman <lhenneman@gmail.com>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
+Depends:
+    data.table,
+    SplitR,
+    magrittr,
+    raster,
+    sp,
+    parallel
+Suggests:
