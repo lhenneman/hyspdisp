@@ -19,11 +19,15 @@
 #' @return This function returns a data table of zip codes that contain particles.
 
 
-link_zip <- function( d, zc = zcta2, cw = crosswalk){
-  xy <- d[,.(lon, lat)]
-  spdf <- SpatialPointsDataFrame(coords = xy, data = d,
-                                 proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
-  o <- over( spdf, zc)
+link_zip <- function( d, zc = zcta2, cw = crosswalk, gridfirst = F){
+  if( gridfirst == F){
+    xy <- d[,.(lon, lat)]
+    spdf <- SpatialPointsDataFrame(coords = xy, data = d,
+                                   proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+    o <- over( spdf, zc)
+  } else {
+
+  }
   D <- data.table( na.omit( cbind(d, o)))
   setnames( D, 'ZCTA5CE10', 'ZCTA')
   cw$ZCTA <- formatC( cw$ZCTA,
