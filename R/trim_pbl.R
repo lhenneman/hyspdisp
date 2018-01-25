@@ -50,6 +50,7 @@ trim_pbl <- function(M,
             pbl := rastersub[spdf.dt[Pmonth %in% mon & Pyear %in% yer, rastercell]]]
   }
   print(6)
+  print(summary(spdf.dt))
   spdf.dt <- spdf.dt[height < pbl]
 
 
