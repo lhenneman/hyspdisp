@@ -17,14 +17,15 @@
 trim_pbl <- function(M,
                      hpbl.nc){
   Sys.setenv(TZ='UTC')
+
   #read in pbl file as raster brick
   rasterin <- rotate(brick(hpbl.nc, varname = 'hpbl' ))
-  print(2)
+
   #get time vector to select layers
   dates <- names( rasterin)
   dates <- gsub( 'X', '', dates)
   dates <- as.Date( gsub( '\\.', '-', dates))
-  print(3)
+
   #Find unique month-year combinations
   M[,Pmonth := formatC(month(Pdate), width = 2, format = "d", flag = "0")]
   M[,Pyear  := formatC(year(Pdate), width = 2, format = "d", flag = "0")]
@@ -38,24 +39,18 @@ trim_pbl <- function(M,
   spdf$rastercell <- cellFromXY(rasterin, spdf)
   spdf.dt <- na.omit( data.table(spdf@data))
 
-  print(4)
   for( m in 1:nrow( my)){
-    print(my[m,])
     mon <- my[m,mo]
     yer <- my[m,yr]
     day <- paste( yer, mon, '01', sep='-')
     layer <- which( dates == day)
-    print(5)
+
     rastersub <- raster::subset(rasterin, subset = layer)
     print(dim(rastersub))
     spdf.dt[Pmonth %in% mon & Pyear %in% yer,
             pbl := rastersub[spdf.dt[Pmonth %in% mon & Pyear %in% yer, rastercell]]]
   }
-  print(6)
-  print(summary(spdf.dt))
   spdf.dt <- spdf.dt[height < pbl]
-
-
   return(M[as(spdf.dt$V1,'integer'),])
 }
 
