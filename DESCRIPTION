@@ -19,5 +19,6 @@ Depends:
     magrittr,
     raster,
     sp,
-    parallel
+    parallel,
+    ncdf4
 Suggests:
