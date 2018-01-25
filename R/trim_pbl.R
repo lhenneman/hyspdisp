@@ -16,7 +16,7 @@
 
 trim_pbl <- function(M,
                      hpbl.nc){
-  print(1);
+  Sys.setenv(TZ='UTC')
   #read in pbl file as raster brick
   rasterin <- rotate(brick(hpbl.nc, varname = 'hpbl' ))
   print(2)
@@ -40,12 +40,14 @@ trim_pbl <- function(M,
 
   print(4)
   for( m in 1:nrow( my)){
+    print(my[m,])
     mon <- my[m,mo]
     yer <- my[m,yr]
     day <- paste( yer, mon, '01', sep='-')
     layer <- which( dates == day)
     print(5)
     rastersub <- raster::subset(rasterin, subset = layer)
+    print(dim(rastersub))
     spdf.dt[Pmonth %in% mon & Pyear %in% yer,
             pbl := rastersub[spdf.dt[Pmonth %in% mon & Pyear %in% yer, rastercell]]]
   }
