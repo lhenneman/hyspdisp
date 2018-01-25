@@ -22,7 +22,7 @@
 link_zip <- function( d, zc = zcta2, cw = crosswalk, gridfirst = F){
   xy <- d[,.(lon, lat)]
   spdf <- SpatialPointsDataFrame(coords = xy, data = d,
-                                 proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+                                 proj4string = CRS(proj4string(zcta2)))
   if( gridfirst == F){
     o <- over( spdf, zc)
     p <- over( spdf, zc)
