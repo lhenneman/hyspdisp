@@ -10,22 +10,53 @@
 #'   \item Pdate (particle date)
 #'   \item height (particle height)
 #' }
-#' @param pb planetary boundary layer heights by zip code
-#' Expected variables are:
-#' \enumerate{
-#'   \item ZIP (zipcode)
-#'   \item hpbl (PBL height in same units as particle heights)
-#' }
+#' @param pb planetary boundary layer heights in netcdf format (download \code{hpbl.mon.mean.nc} from:
+#' https://www.esrl.noaa.gov/psd/data/gridded/data.20thC_ReanV2.monolevel.mm.html )
 #' @return This function returns a trimmed dataset.
 
 trim_pbl <- function(M,
-                     pb = pbl){
-  M[, `:=` (ZIP   = as( ZIP, 'character'),
-            month = as( month( Pdate), 'integer'),
-            year  = as( year(  Pdate), 'integer'))]
-  M_pbl <- merge( M, pb, by = c('ZIP', 'month', 'year'))
+                     hpbl.nc){
+  Sys.setenv(TZ='UTC')
 
-  ## cutoff parcels with height greater than PBL
-  M_pbl <- M_pbl[height < hpbl]
-  return(M_pbl)
-}
+  #get time vector to select layers
+  ncin = nc_open(hpbl.nc)
+  time <- ncvar_get(ncin,'time')
+  time.date <- as.Date(as.POSIXct(time*3600,origin='1800-01-01 00:00'))
+
+  #read in pbl file as raster brick
+  rasterin <- rotate(brick(hpbl.nc, varname = 'hpbl' ))
+
+  #Find unique month-year combinations
+  M[,Pmonth := formatC(month(Pdate), width = 2, format = "d", flag = "0")]
+  M[,Pyear  := formatC(year(Pdate), width = 2, format = "d", flag = "0")]
+  my <- data.table( expand.grid( data.table( mo = unique(M[,Pmonth]),
+                                             yr = unique(M[,Pyear]))))
+
+  #Convert M to spatial points data frame
+  xy <- M[,.(lon, lat)]
+  spdf <- SpatialPointsDataFrame(coords = xy, data = M,
+                                 proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+  spdf$rastercell <- cellFromXY(rasterin, spdf)
+  spdf.dt <- na.omit( data.table(spdf@data))
+
+  for( m in 1:nrow( my)){
+    mon <- my[m,mo]
+    yer <- my[m,yr]
+    day <- paste( yer, mon, '01', sep='-')
+
+    rastersub <- subset(rasterin, which( time.date == day))
+    spdf.dt[Pmonth %in% mon & Pyear %in% yer,
+            pbl := rastersub[spdf.dt[Pmonth %in% mon & Pyear %in% yer, rastercell]]]
+  }
+  spdf.dt <- spdf.dt[height < pbl]
+
+
+  return(M[as(spdf.dt$V1,'integer'),])
+ }
+
+
+
+
+
+
+
