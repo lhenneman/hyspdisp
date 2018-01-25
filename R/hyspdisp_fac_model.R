@@ -99,13 +99,6 @@ hyspdisp_fac_model <- function(dh,
     ## trim particles if they go below zero
     disp_df <- trim_zero(dispersion_df)
 
-    ## Add unit number
-    #     disp_df$ID <- unit$ID
-
-    ## Add emiss date and time
-    #     disp_df$Edate <- date_ref$start_day
-    #     disp_df$Ehour <- date_ref$start_hour
-
     ## Add parcel date and time
     disp_df$Pdate <- date_ref$start_day + disp_df$hour / 24
 
@@ -125,14 +118,14 @@ hyspdisp_fac_model <- function(dh,
   } else
     disp_df <- fread(output_file)
 
-  ## link to zips
-  disp_df_link <- link_zip( disp_df)
-
   ## trim values above PBL
-  disp_df_link_trim <- trim_pbl(disp_df_link)
+  disp_df_trim <- trim_pbl(disp_df,
+                           hpbl.nc = '~/Dropbox/Harvard/RFMeval_Local/HYSPLIT/hysp_disp/hpbl.mon.mean.nc')
+  ## link to zips
+  disp_df_link <- link_zip( disp_df_trim)
 
   ## find fraction of particles per zip
-  tot_by_zip <- zip_frac(disp_df_link_trim)
+  tot_by_zip <- zip_count(disp_df_link)
 
   #   return( disp_df[,.(lon, lat, height)])
   return( tot_by_zip)
