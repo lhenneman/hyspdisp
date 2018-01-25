@@ -43,8 +43,9 @@ trim_pbl <- function(M,
     mon <- my[m,mo]
     yer <- my[m,yr]
     day <- paste( yer, mon, '01', sep='-')
+    layer <- which( time.date == day)
 
-    rastersub <- subset(rasterin, as(which( time.date == day),'integer'))
+    rastersub <- subset(rasterin, layer)
     spdf.dt[Pmonth %in% mon & Pyear %in% yer,
             pbl := rastersub[spdf.dt[Pmonth %in% mon & Pyear %in% yer, rastercell]]]
   }
