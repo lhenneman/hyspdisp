@@ -20,6 +20,7 @@ trim_pbl <- function(M,
 
   #read in pbl file as raster brick
   rasterin <- rotate(brick(hpbl.nc, varname = 'hpbl' ))
+  print(rasterin)
 
   #get time vector to select layers
   dates <- names( rasterin)
