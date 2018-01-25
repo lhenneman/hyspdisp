@@ -20,15 +20,30 @@
 
 
 link_zip <- function( d, zc = zcta2, cw = crosswalk, gridfirst = F){
+  xy <- d[,.(lon, lat)]
+  spdf <- SpatialPointsDataFrame(coords = xy, data = d,
+                                 proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
   if( gridfirst == F){
-    xy <- d[,.(lon, lat)]
-    spdf <- SpatialPointsDataFrame(coords = xy, data = d,
-                                   proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
     o <- over( spdf, zc)
+    p <- over( spdf, zc)
+    D <- data.table( na.omit( cbind(d, o)))
+    D <- data.table( na.omit( cbind(d, p)))
   } else {
+    r <- raster(xmn = -130,
+                ymn = 24,
+                xmx = -60,
+                ymx = 75,
+                res = .1)
+    r[] <- 0
+    tab <- table(cellFromXY(r, spdf))
+
+    r[as.numeric(names(tab))] <- tab
+    r[r==0] <- NA
+    r2 <- as(r, "SpatialPixelsDataFrame")
+    o <- over( zcta2, r2, fn = mean)
+D <- merge(o)
 
   }
-  D <- data.table( na.omit( cbind(d, o)))
   setnames( D, 'ZCTA5CE10', 'ZCTA')
   cw$ZCTA <- formatC( cw$ZCTA,
                       width = 5,
