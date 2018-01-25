@@ -16,15 +16,15 @@
 
 trim_pbl <- function(M,
                      hpbl.nc){
-
+print(1)
   #read in pbl file as raster brick
   rasterin <- rotate(brick(hpbl.nc, varname = 'hpbl' ))
-
+print(2)
   #get time vector to select layers
   dates <- names( rasterin)
   dates <- gsub( 'X', '', dates)
   dates <- as.Date( gsub( '\\.', '-', dates))
-
+print(3)
   #Find unique month-year combinations
   M[,Pmonth := formatC(month(Pdate), width = 2, format = "d", flag = "0")]
   M[,Pyear  := formatC(year(Pdate), width = 2, format = "d", flag = "0")]
