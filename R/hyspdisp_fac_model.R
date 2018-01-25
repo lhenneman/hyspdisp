@@ -33,10 +33,9 @@ hyspdisp_fac_model <- function(dh,
                                npart,
                                current_dir,
                                prc_dir,
-                               zcta2 = zcta2,
-                               crosswalk = crosswalk,
-                               pbl_hts = pbl,
-                               p4s = p4s){
+                               zcta2,
+                               crosswalk,
+                               hpbl_file){
   ## select date and hour
   date_ref <- date_ref_h[dh]
   print(paste0('Date: ', format(date_ref[,2], format = "%Y-%m-%d"), ', Hour: ', date_ref[,1]))
@@ -120,7 +119,7 @@ hyspdisp_fac_model <- function(dh,
 
   ## trim values above PBL
   disp_df_trim <- trim_pbl(disp_df,
-                           hpbl.nc = '~/Dropbox/Harvard/RFMeval_Local/HYSPLIT/hysp_disp/hpbl.mon.mean.nc')
+                           hpbl.nc = hpbl_file)
   ## link to zips
   disp_df_link <- link_zip( disp_df_trim)
 
