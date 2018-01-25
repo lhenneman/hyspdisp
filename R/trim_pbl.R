@@ -16,7 +16,6 @@
 
 trim_pbl <- function(M,
                      hpbl.nc){
-  Sys.setenv(TZ='UTC')
 
   #read in pbl file as raster brick
   rasterin <- rotate(brick(hpbl.nc, varname = 'hpbl' ))
