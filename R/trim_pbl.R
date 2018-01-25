@@ -16,7 +16,7 @@
 
 trim_pbl <- function(M,
                      hpbl.nc){
-print(1)
+print(1);
   #read in pbl file as raster brick
   rasterin <- rotate(brick(hpbl.nc, varname = 'hpbl' ))
 print(2)
