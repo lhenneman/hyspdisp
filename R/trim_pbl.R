@@ -47,7 +47,7 @@ trim_pbl <- function(M,
     print(layer)
     print(rasterin)
 
-    rastersub <- subset(rasterin, layer)
+    rastersub <- subset(rasterin, subset = layer)
     spdf.dt[Pmonth %in% mon & Pyear %in% yer,
             pbl := rastersub[spdf.dt[Pmonth %in% mon & Pyear %in% yer, rastercell]]]
   }
