@@ -35,7 +35,8 @@ hyspdisp_fac_model <- function(dh,
                                prc_dir,
                                zcta2,
                                crosswalk,
-                               hpbl_file){
+                               hpbl_file,
+                               link2zip = T){
   ## select date and hour
   date_ref <- date_ref_h[dh]
   print(paste0('Date: ', format(date_ref[,2], format = "%Y-%m-%d"), ', Hour: ', date_ref[,1]))
@@ -117,16 +118,19 @@ hyspdisp_fac_model <- function(dh,
   } else
     disp_df <- fread(output_file)
 
-  ## trim values above PBL
-  disp_df_trim <- trim_pbl(disp_df,
-                           hpbl.nc = hpbl_file)
-  ## link to zips
-  disp_df_link <- link_zip( disp_df_trim,
-                            gridfirst = T)
+  if( link2zip == T){
+    ## trim values above PBL
+    disp_df_trim <- trim_pbl(disp_df,
+                             hpbl.nc = hpbl_file)
+    ## link to zips
+    disp_df_link <- link_zip( disp_df_trim,
+                              gridfirst = T)
 
-  ## find fraction of particles per zip
-  # tot_by_zip <- zip_count(disp_df_link)
+    ## find fraction of particles per zip
+    # tot_by_zip <- zip_count(disp_df_link)
 
-  #   return( disp_df[,.(lon, lat, height)])
-  return( disp_df_link[, .(ZIP, N)])
+    out <- disp_df_link[, .(ZIP, N)]
+  } else
+    out <- 'hyspdisp run successfully!'
+  return(out)
 }
