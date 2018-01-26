@@ -35,8 +35,8 @@ link_zip <- function( d, zc = zcta2, cw = crosswalk, gridfirst = F){
     r[] <- 0
     tab <- table(cellFromXY(r, spdf))
 
-    r[as.numeric(names(tab))] <- tab
-    r[r==0] <- NA
+    r[as.numeric( names( tab))] <- tab
+    # r[r==0] <- NA
     r2 <- as(r, "SpatialGridDataFrame")
     o <- over( zcta2, r2, fn = mean)
     setnames( o, 'layer', 'N')
