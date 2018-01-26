@@ -14,7 +14,7 @@
 #' https://www.esrl.noaa.gov/psd/data/gridded/data.20thC_ReanV2.monolevel.mm.html )
 #' @return This function returns a trimmed dataset.
 
-trim_pbl <- function(M ,
+trim_pbl <- function(M,
                      hpbl.nc){
   Sys.setenv(TZ='UTC')
 
