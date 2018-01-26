@@ -125,8 +125,8 @@ hyspdisp_fac_model <- function(dh,
                             gridfirst = T)
 
   ## find fraction of particles per zip
-  tot_by_zip <- zip_count(disp_df_link)
+  # tot_by_zip <- zip_count(disp_df_link)
 
   #   return( disp_df[,.(lon, lat, height)])
-  return( tot_by_zip)
+  return( disp_df_link[, .(ZIP, N)])
 }
