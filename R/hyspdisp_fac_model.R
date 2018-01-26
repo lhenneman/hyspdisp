@@ -121,7 +121,8 @@ hyspdisp_fac_model <- function(dh,
   disp_df_trim <- trim_pbl(disp_df,
                            hpbl.nc = hpbl_file)
   ## link to zips
-  disp_df_link <- link_zip( disp_df_trim)
+  disp_df_link <- link_zip( disp_df_trim,
+                            gridfirst = T)
 
   ## find fraction of particles per zip
   tot_by_zip <- zip_count(disp_df_link)
