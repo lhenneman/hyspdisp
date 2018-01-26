@@ -37,7 +37,7 @@ link_zip <- function( d, zc = zcta2, cw = crosswalk, gridfirst = F){
 
     r[as.numeric(names(tab))] <- tab
     r[r==0] <- NA
-    r2 <- as(r, "SpatialPixelsDataFrame")
+    r2 <- as(r, "SpatialGridDataFrame")
     o <- over( zcta2, r2, fn = mean)
     setnames( o, 'layer', 'N')
     D <- data.table( cbind(zc@data, o))
