@@ -25,9 +25,7 @@ link_zip <- function( d, zc = zcta2, cw = crosswalk, gridfirst = F){
                                  proj4string = CRS(proj4string(zcta2)))
   if( gridfirst == F){
     o <- over( spdf, zc)
-    p <- over( spdf, zc)
     D <- data.table( na.omit( cbind(d, o)))
-    D <- data.table( na.omit( cbind(d, p)))
   } else {
     r <- raster(xmn = -130,
                 ymn = 24,
@@ -41,7 +39,8 @@ link_zip <- function( d, zc = zcta2, cw = crosswalk, gridfirst = F){
     r[r==0] <- NA
     r2 <- as(r, "SpatialPixelsDataFrame")
     o <- over( zcta2, r2, fn = mean)
-D <- merge(o)
+    setnames( o, 'layer', 'N')
+    D <- data.table( cbind(zc@data, o))
 
   }
   setnames( D, 'ZCTA5CE10', 'ZCTA')
