@@ -35,7 +35,7 @@ hyspdisp_fac_model <- function(dh,
                                prc_dir,
                                zcta2,
                                crosswalk,
-                               hpbl_file,
+                               hpbl_raster,
                                link2zip = T){
   ## select date and hour
   date_ref <- date_ref_h[dh]
@@ -103,7 +103,7 @@ hyspdisp_fac_model <- function(dh,
     disp_df$Pdate <- date_ref$start_day + disp_df$hour / 24
 
     # trims particles that are above the global max boundary value
-    disp_df_trim <- disp_df[height <= max(pbl_hts$hpbl)]
+    disp_df_trim <- disp_df[height <= max( values( hpbl_raster))]
 
     ## Move back to main directory
     setwd(current_dir)
@@ -121,7 +121,7 @@ hyspdisp_fac_model <- function(dh,
   if( link2zip == T){
     ## trim values above PBL
     disp_df_trim <- trim_pbl(disp_df,
-                             hpbl.nc = hpbl_file)
+                             rasterin = hpbl_raster)
     ## link to zips
     disp_df_link <- link_zip( disp_df_trim,
                               gridfirst = T)
