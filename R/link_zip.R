@@ -30,14 +30,14 @@ link_zip <- function( d, zc = zcta2, cw = crosswalk, gridfirst = F){
     r <- raster(xmn = -130,
                 ymn = 24,
                 xmx = -60,
-                ymx = 75,
+                ymx = 51,
                 res = .1)
-    r[] <- 0
+    # r[] <- 0
     tab <- table(cellFromXY(r, spdf))
 
     r[as.numeric( names( tab))] <- tab
-    r2 <- as(r, "SpatialGridDataFrame")
-    or <- data.table( extract( r, zcta2, fun = mean, na.rm = T))
+    r2 <- trim(r, padding = 1) #as(r, "SpatialGridDataFrame")
+    or <- data.table( extract( r2, zcta2, fun = mean, na.rm = T))
     setnames( or, 'V1', 'N')
     D <- data.table( cbind(zc@data, or))
   }
