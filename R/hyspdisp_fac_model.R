@@ -131,6 +131,6 @@ hyspdisp_fac_model <- function(dh,
 
     out <- disp_df_link[, .(ZIP, N)]
   } else
-    out <- 'hyspdisp run successfully!'
+    out <- disp_df
   return(out)
 }
