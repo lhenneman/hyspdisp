@@ -18,6 +18,7 @@ trim_pbl <- function(Min,
                      rasterin){
   Sys.setenv(TZ='UTC')
   M <- copy(Min)
+  M[, ref := 1:nrow(M)]
 
   #get time vector to select layers
   dates <- names( rasterin)
@@ -48,7 +49,8 @@ trim_pbl <- function(Min,
             pbl := rastersub[spdf.dt[Pmonth %in% mon & Pyear %in% yer, rastercell]]]
   }
   spdf.dt <- spdf.dt[height < pbl]
-  return(M[as(spdf.dt$V1,'integer'),])
+  return(M[spdf.dt$ref,
+           .(lon, lat, height, Pdate)])
 }
 
 
