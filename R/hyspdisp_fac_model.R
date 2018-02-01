@@ -115,10 +115,11 @@ hyspdisp_fac_model <- function(dh,
 
     ## Erase run files
     unlink(run_dir, recursive = TRUE)
-  } else
-    disp_df <- fread(output_file)
+  }
 
   if( link2zip == T){
+    disp_df <- fread(output_file)
+
     ## trim values above PBL
     disp_df_trim <- trim_pbl(disp_df,
                              rasterin = hpbl_raster)
