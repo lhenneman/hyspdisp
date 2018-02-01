@@ -49,8 +49,10 @@ trim_pbl <- function(Min,
             pbl := rastersub[spdf.dt[Pmonth %in% mon & Pyear %in% yer, rastercell]]]
   }
   spdf.dt <- spdf.dt[height < pbl]
-  return(M[spdf.dt$ref,
-           .(lon, lat, Pdate, height, pbl)])
+  Mout <- M[spdf.dt$ref,
+            .(lon, lat, Pdate, height)]
+  Mout[, pbl := spdf.dt[, pbl]]
+  return(Mout)
 }
 
 
