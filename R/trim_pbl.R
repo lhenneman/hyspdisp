@@ -50,7 +50,7 @@ trim_pbl <- function(Min,
   }
   spdf.dt <- spdf.dt[height < pbl]
   return(M[spdf.dt$ref,
-           .(lon, lat, height, Pdate)])
+           .(lon, lat, Pdate, height, pbl)])
 }
 
 
