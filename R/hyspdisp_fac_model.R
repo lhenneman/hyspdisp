@@ -131,7 +131,7 @@ hyspdisp_fac_model <- function(dh,
     # tot_by_zip <- zip_count(disp_df_link)
 
     out <- disp_df_link[, .(ZIP, N)]
-  } else
-    out <- disp_df
-  return(out)
+    return(out)
+
+  }
 }
