@@ -23,7 +23,9 @@ link_zip <- function( d,
                       zc = zcta2,
                       cw = crosswalk,
                       gridfirst = F,
-                      rasterin = NULL){
+                      hpbl_file = NULL){
+  date <- d$Pdate[1]
+
   xy <- d[,.(lon, lat)]
   spdf <- SpatialPointsDataFrame(coords = xy, data = d,
                                  proj4string = CRS(proj4string(zcta2)))
@@ -31,21 +33,28 @@ link_zip <- function( d,
     o <- over( spdf, zc)
     D <- data.table( na.omit( cbind(d, o)))
   } else {
+    # extract data layer from raster, disaggregate to .1°x.1°
     if( is.null( rasterin) == T)
-      stop( "Need PBL raster!")
+      stop( "Need PBL raster file!")
+    pbl_layer <- subset_nc_date(hpbl_file = hpbl_file,
+                                varname = 'hpbl',
+                                vardate = date)
+    pbl_layer.d <- disaggregate(pbl_layer, fact = 20)
 
-    r <- raster(xmn = -130,
-                ymn = 24,
-                xmx = -60,
-                ymx = 51,
-                res = .1)
-    # r[] <- 0
+    # count number of particles in each cell,
+    # find original raster cells, divide number by pbl
+    r <- pbl_layer.d
+    values(r) <- NA
     cells <- cellFromXY(r, spdf)
     tab <- table(cells)
+    pbls <- pbl_layer.d[as.numeric( names( tab))]
+    r[as.numeric( names( tab))] <- tab / pbls
+    e <- extent(-130, -60, 24, 51)
+    r2 <- crop( trim(r, padding = 1), e)
 
-    r[as.numeric( names( tab))] <- tab
-    r2 <- trim(r, padding = 1) #as(r, "SpatialGridDataFrame")
+    #extract average concentrations over zip codes
     or <- data.table( extract( r2, zcta2, fun = mean, na.rm = T))
+
     setnames( or, 'V1', 'N')
     D <- data.table( cbind(zc@data, or))
   }
