@@ -49,7 +49,8 @@ link_zip <- function( d,
     tab <- table(cells)
     pbls <- pbl_layer.d[as.numeric( names( tab))]
     r[as.numeric( names( tab))] <- tab / pbls
-    # r2 <- trim(r, padding = 1)
+    e <- extent( -130, -60, 24, 51)
+    r2 <- crop( trim(r, padding = 1), e)
 
     #extract average concentrations over zip codes
     or <- data.table( extract( r, zcta2, fun = mean, na.rm = T))
