@@ -27,6 +27,7 @@ trim_pbl <- function(Min,
                                              yr = unique(M[,Pyear]))))
 
   #Convert M to spatial points data frame
+  rasterin <- rotate(brick(hpbl_file, varname = 'hpbl' ))
   xy <- M[,.(lon, lat)]
   spdf <- SpatialPointsDataFrame(coords = xy, data = M,
                                  proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
