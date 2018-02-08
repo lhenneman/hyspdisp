@@ -19,7 +19,11 @@
 #' @return This function returns a data table of zip codes that contain particles.
 
 
-link_zip <- function( d, zc = zcta2, cw = crosswalk, gridfirst = F){
+link_zip <- function( d,
+                      zc = zcta2,
+                      cw = crosswalk,
+                      gridfirst = F,
+                      rasterin = NULL){
   xy <- d[,.(lon, lat)]
   spdf <- SpatialPointsDataFrame(coords = xy, data = d,
                                  proj4string = CRS(proj4string(zcta2)))
@@ -27,13 +31,17 @@ link_zip <- function( d, zc = zcta2, cw = crosswalk, gridfirst = F){
     o <- over( spdf, zc)
     D <- data.table( na.omit( cbind(d, o)))
   } else {
+    if( is.null( rasterin) == T)
+      stop( "Need PBL raster!")
+
     r <- raster(xmn = -130,
                 ymn = 24,
                 xmx = -60,
                 ymx = 51,
                 res = .1)
     # r[] <- 0
-    tab <- table(cellFromXY(r, spdf))
+    cells <- cellFromXY(r, spdf)
+    tab <- table(cells)
 
     r[as.numeric( names( tab))] <- tab
     r2 <- trim(r, padding = 1) #as(r, "SpatialGridDataFrame")
