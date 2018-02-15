@@ -112,7 +112,7 @@ hyspdisp_fac_model <- function(dh,
     print(current_dir)
 
     ## Save R data frame
-    save.vars <- c('lon', 'lat', 'height', 'Pdate')
+    save.vars <- c('lon', 'lat', 'height', 'Pdate', 'hour')
     write.csv(disp_df_trim[,save.vars, with = F], output_file)
 
     ## Erase run files
@@ -133,7 +133,6 @@ hyspdisp_fac_model <- function(dh,
     # tot_by_zip <- zip_count(disp_df_link)
 
     out <- disp_df_link[, .(ZIP, N)]
-    return(out)
-
+    return( out)
   }
 }
