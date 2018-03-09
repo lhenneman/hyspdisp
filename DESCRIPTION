@@ -10,8 +10,7 @@ Authors@R: c(
 Maintainer: Lucas Henneman <lhenneman@gmail.com>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
-Encoding: UTF-8
+License: GPL-3
 LazyData: true
 Depends:
     data.table,
