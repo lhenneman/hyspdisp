@@ -34,7 +34,7 @@ link_zip <- function( d,
     D <- data.table( na.omit( cbind(d, o)))
   } else {
     # extract data layer from raster, disaggregate to .1°x.1°
-    if( is.null( rasterin) == T)
+    if( is.null( hpbl_file) == T)
       stop( "Need PBL raster file!")
     pbl_layer <- subset_nc_date(hpbl_file = hpbl_file,
                                 varname = 'hpbl',
@@ -53,7 +53,7 @@ link_zip <- function( d,
     r2 <- crop( trim(r, padding = 1), e)
 
     #extract average concentrations over zip codes
-    or <- data.table( extract( r, zcta2, fun = mean, na.rm = T))
+    or <- data.table( extract( r2, zcta2, fun = mean, na.rm = T))
 
     setnames( or, 'V1', 'N')
     D <- data.table( cbind(zc@data, or))

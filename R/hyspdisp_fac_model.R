@@ -23,6 +23,7 @@
 #'   \item hpbl (PBL height in same units as particle heights)
 #' }
 #' @param p4s proj4string consistent across spatial objects
+#' @param overwrite overwrite files?
 #' @return This function returns a data table of zip codes with associated number of particles.
 
 
@@ -36,6 +37,7 @@ hyspdisp_fac_model <- function(dh,
                                zcta2,
                                crosswalk,
                                hpbl_raster,
+                               overwrite = F,
                                link2zip = T){
   ## select date and hour
   date_ref <- date_ref_h[dh]
@@ -53,7 +55,7 @@ hyspdisp_fac_model <- function(dh,
   tmp.exists <- list.files( file.path( prc_dir, "tmp"), full.names = T)
 
   `%ni%` <- Negate(`%in%`)
-  if( output_file %ni% tmp.exists){
+  if( output_file %ni% tmp.exists | overwrite == T){
     ## Create run directory
     run_dir <- file.path(prc_dir, dh)
     dir.create(run_dir, showWarnings = FALSE)
@@ -110,7 +112,7 @@ hyspdisp_fac_model <- function(dh,
     print(current_dir)
 
     ## Save R data frame
-    save.vars <- c('lon', 'lat', 'height', 'Pdate')
+    save.vars <- c('lon', 'lat', 'height', 'Pdate', 'hour')
     write.csv(disp_df_trim[,save.vars, with = F], output_file)
 
     ## Erase run files
@@ -131,7 +133,6 @@ hyspdisp_fac_model <- function(dh,
     # tot_by_zip <- zip_count(disp_df_link)
 
     out <- disp_df_link[, .(ZIP, N)]
-    return(out)
-
+    return( out)
   }
 }

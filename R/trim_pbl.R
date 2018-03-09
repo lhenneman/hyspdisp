@@ -15,15 +15,10 @@
 #' @return This function returns a trimmed dataset.
 
 trim_pbl <- function(Min,
-                     rasterin){
+                     hpbl_file){
   Sys.setenv(TZ='UTC')
   M <- copy(Min)
   M[, ref := 1:nrow(M)]
-
-  #get time vector to select layers
-  dates <- names( rasterin)
-  dates <- gsub( 'X', '', dates)
-  dates <- as.Date( gsub( '\\.', '-', dates))
 
   #Find unique month-year combinations
   M[,Pmonth := formatC(month(Pdate), width = 2, format = "d", flag = "0")]
@@ -32,6 +27,7 @@ trim_pbl <- function(Min,
                                              yr = unique(M[,Pyear]))))
 
   #Convert M to spatial points data frame
+  rasterin <- rotate(brick(hpbl_file, varname = 'hpbl' ))
   xy <- M[,.(lon, lat)]
   spdf <- SpatialPointsDataFrame(coords = xy, data = M,
                                  proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
@@ -42,17 +38,17 @@ trim_pbl <- function(Min,
     mon <- my[m,mo]
     yer <- my[m,yr]
     day <- paste( yer, mon, '01', sep='-')
-    layer <- which( dates == day)
 
-    rastersub <- raster::subset(rasterin, subset = layer)
+    rastersub <- subset_nc_date(hpbl_file = hpbl_file,
+                                varname = 'hpbl',
+                                vardate = day)
+
     spdf.dt[Pmonth %in% mon & Pyear %in% yer,
             pbl := rastersub[spdf.dt[Pmonth %in% mon & Pyear %in% yer, rastercell]]]
   }
   spdf.dt <- spdf.dt[height < pbl]
-  Mout <- M[spdf.dt$ref,
-            .(lon, lat, Pdate, height)]
-  Mout[, pbl := spdf.dt[, pbl]]
-  return(Mout)
+  return(M[spdf.dt$ref,
+           .(lon, lat, height, Pdate)])
 }
 
 
