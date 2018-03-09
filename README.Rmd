@@ -1,0 +1,28 @@
+---
+title: "hyspdisp"
+author: "Lucas Henneman"
+date: "3/9/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# ```hyspdisp```
+
+```hyspdisp``` is an R package that runs HYSPLIT (https://ready.arl.noaa.gov/HYSPLIT.php) many times. The results can then be aggregated to zip code level.
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
