@@ -6,23 +6,39 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 # ```hyspdisp```
 
-```hyspdisp``` is an R package that runs HYSPLIT (https://ready.arl.noaa.gov/HYSPLIT.php) many times. The results can then be aggregated to zip code level.
+```hyspdisp``` is an R package that runs HYSPLIT (https://ready.arl.noaa.gov/HYSPLIT.php) many times. The results can then be aggregated to ZIP code level to create national estimates of exposure from various sources.  For example, plumes from several power plants can be tracked for many days and cummulative impacts estimated. The package relies on a modified version of the ```SplitR``` package, originally developed by https://github.com/rich-iannone/SplitR.
 
-```{r cars}
-summary(cars)
+This example walks through an example run of ```hyspdisp``` functions.
+
+# ```hyspdisp``` workflow
+### install ```hyspdisp``` from github and load 
+First, install ```SplitR```, an R interface to HYSPLIT. ```hysplit``` uses ```SplitR``` to access HYSPLIT.
+```{r}
+devtools::install_github("lhenneman/SplitR")
+```
+Next, download and install ```hyspdisp```
+```{r}
+devtools::install_github("lhenneman/hyspdisp")
+library(hyspdisp)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
+
+
+
+
+
+
+
+
+
