@@ -3,7 +3,7 @@
 #' \code{hyspdisp_fac_model}  takes multiple inputs and
 #' outputs counts of particles per zip code.
 #'
-#' @param dh row numbers of \code{date_ref_h}.
+#' @param dh row numbers of \code{date_ref_h}. If NULL (default), defaults to 1, i.e., SplitR run on first row of \code{date_ref_h}
 #' @param date_ref_h table of parameters for the dispersion run.
 #' @param unit emissions unit information.
 #' @param species particle species. One either of 'so2' or 'so4'.
@@ -27,7 +27,7 @@
 #' @return This function returns a data table of zip codes with associated number of particles.
 
 
-hyspdisp_fac_model <- function(dh,
+hyspdisp_fac_model <- function(dh = NULL,
                                date_ref_h,
                                unit,
                                species,
