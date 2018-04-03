@@ -6,10 +6,10 @@
 #' @param dh row numbers of \code{date_ref_h}.
 #' @param date_ref_h table of parameters for the dispersion run.
 #' @param unit emissions unit information.
-#' @param species_param particle species information.
-#' @param npart number of particles emitted per hour.
-#' @param current_dir current directory.
-#' @param prc_dir run directory.
+#' @param species particle species. One either of 'so2' or 'so4'.
+#' @param npart number of particles emitted per hour. Defaults to 100
+#' @param current_dir current directory. Defaults to current directory
+#' @param prc_dir run directory. Defaults to NULL. If NULL, creates a directory named prc_`dh`_TODAYSDATE
 #' @param zcta2 zip code \code{SpatialPolygonsDataFrame} object.
 #' Expected variables are:
 #' \enumerate{
@@ -30,15 +30,33 @@
 hyspdisp_fac_model <- function(dh,
                                date_ref_h,
                                unit,
-                               species_param,
-                               npart,
-                               current_dir,
-                               prc_dir,
+                               species,
+                               npart = 100,
+                               current_dir = getwd(),
+                               prc_dir = NULL,
                                zcta2,
                                crosswalk,
                                hpbl_raster,
                                overwrite = F,
                                link2zip = T){
+
+  # Check if hpbl_raster is defined
+  if( !hasArg( hpbl_raster))
+    stop( "Please define a hpbl_raster file")
+
+  ## define species parameters
+  species_param <- define_species( species)
+
+  # Create process directory in current directory if not defined
+  if( is.null( prc_dir)){
+    prc_dir <- file.path(current_dir, paste0( 'prc_',
+                                              dh,
+                                              '_',
+                                              Sys.Date()))
+  }
+  dir.create(prc_dir, showWarnings = FALSE)
+
+
   ## select date and hour
   date_ref <- date_ref_h[dh]
   print(paste0('Date: ', format(date_ref[,2], format = "%Y-%m-%d"), ', Hour: ', date_ref[,1]))
@@ -120,6 +138,15 @@ hyspdisp_fac_model <- function(dh,
   }
 
   if( link2zip == T){
+    # Check if crosswalk is defined
+    if( !hasArg( zcta2))
+      stop( "Please define a zcta2 file to link zips")
+
+    # Check if crosswalk is defined
+    if( !hasArg( crosswalk))
+      stop( "Please define a crosswalk file to link zips")
+
+
     disp_df <- fread(output_file)
 
     ## trim values above PBL
