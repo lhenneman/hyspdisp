@@ -43,8 +43,10 @@ link_zip <- function( d,
     pbl_layer <- subset_nc_date( hpbl_file = hpbl_file,
                                  varname = 'hpbl',
                                  vardate = date)
-    pbl_layer.t <- projectRaster( pbl_layer,
-                                  crs = CRS( proj4string( spdf)))
+    suppressWarnings(
+      pbl_layer.t <- projectRaster( pbl_layer,
+                                    crs = CRS( proj4string( spdf)))
+    )
     pbl_layer.d <- disaggregate( pbl_layer.t,
                                  fact = 20)
 
