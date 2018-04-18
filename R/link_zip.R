@@ -46,7 +46,7 @@ link_zip <- function( d,
     pbl_layer.t <- projectRaster( pbl_layer,
                                   crs = CRS( proj4string( spdf)))
     pbl_layer.d <- disaggregate( pbl_layer.t,
-                                 fact = 30)
+                                 fact = 20)
 
 
     # count number of particles in each cell,
