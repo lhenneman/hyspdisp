@@ -24,7 +24,7 @@ link_zip <- function( d,
                       cw = crosswalk,
                       gridfirst = F,
                       hpbl_file = NULL){
-  date <- d$Pdate[1]
+  date <- min( d$Pdate)
 
   xy <- d[,.(lon, lat)]
   spdf <- SpatialPointsDataFrame(coords = xy, data = d,
