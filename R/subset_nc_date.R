@@ -9,11 +9,11 @@
 #' @return raster layer of input file, variable, and date
 
 subset_nc_date <- function( hpbl_file,
-                                varname,
-                                vardate){
+                            varname,
+                            vardate){
 
   Sys.setenv(TZ='UTC')
-  rasterin <- rotate(brick(hpbl_file, varname = varname ))
+  rasterin <- rotate( brick( hpbl_file, varname = varname ))
 
   #get time vector to select layers
   dates <- names( rasterin)
