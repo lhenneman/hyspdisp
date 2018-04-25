@@ -1,5 +1,5 @@
 ## Retrieve arguments passed from the command line.
-devtools::install_github("cchoirat/SplitR") # ref = "rce_met_dir",
+devtools::install_github("lhenneman/SplitR") # ref = "rce_met_dir",
 devtools::install_github("lhenneman/hyspdisp", force = T) # ref = "rce_met_dir",
 process <- as.integer(as.character(commandArgs(trailingOnly = TRUE)))
 
