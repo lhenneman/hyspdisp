@@ -92,7 +92,7 @@ hyspdisp_fac_model <- function(dh = NULL,
         start_hour = date_ref$start_hour) %>%
       add_species(
         name = species_param$name,
-        pdiam = 0, # okay
+        pdiam = species_param$pdiam, # okay
         density = 0, # okay
         shape_factor = 0, # okay
         #resuspension = species_param$resuspension
