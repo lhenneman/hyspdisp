@@ -105,58 +105,6 @@ l <- mclapply( seq_len( nrow( date_ref_h)),
                link2zip = T)
 ```
 
-```{r}
-dispersion_model <-
-  create_disp_model() %>%
-  add_emissions(
-    rate = 1,
-    duration = 1,
-    start_day = "2005-01-01",
-    start_hour = 0) %>%
-  add_species(
-    name = species_param$name,
-    pdiam = species_param$pdiam, 
-    density = species_param$density, 
-    shape_factor = species_param$shape_factor, 
-    ddep_vel = species_param$ddep_vel) %>% 
-  add_grid(
-    range = c(0.5, 0.5),
-    division = c(0.1, 0.1)) %>%
-  add_params(
-    lat = unit$Latitude,
-    lon = unit$Longitude,
-    height = unit$Height,
-    duration = 24,
-    start_day = "2005-01-01",
-    start_hour = 0,
-    direction = "forward",
-    met_type = "reanalysis"
-  ) %>%
-  run_model(npart = 100)
-```
-
-```{r}
-dispersion_df <-
-  dispersion_model %>% get_output_df() %>% data.table()
-```
-
-## trim particles if they go below zero
-disp_df <- trim_zero(dispersion_df)
-
-## Add parcel date and time
-disp_df$Pdate <- date_ref$start_day + disp_df$hour / 24
-
-# trims particles that are above the global max boundary value
-disp_df_trim <- disp_df[height <= max( values( hpbl_raster))]
-
-
-
-
-## define species parameters
-species_param <- define_species( species)
-
-```
-
 
 
 
