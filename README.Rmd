@@ -20,6 +20,7 @@ This example walks through an example run of ```hyspdisp``` functions.
 First, install ```SplitR```, an R interface to HYSPLIT. ```hysplit``` uses ```SplitR``` to access HYSPLIT.
 ```{r}
 devtools::install_github("lhenneman/SplitR")
+library(SplitR)
 ```
 Next, download and install ```hyspdisp```
 ```{r}
@@ -27,7 +28,84 @@ devtools::install_github("lhenneman/hyspdisp")
 library(hyspdisp)
 ```
 
+### Modeling a plume with HYSPLIT from SplitR
+Here we present an example of a single emissions event (i.e., a "puff") emitted from one source on 1 January, 2005 at midnight. You can track a single emissions puff of 100 particles emitted in a single hour. These commands are adapted from [SplitR](https://github.com/rich-iannone/SplitR). 
 
+Define species parameters using utility function - two ooptions, so2 and so4
+```{r}
+species_param <- define_species( "so2")
+```
+
+Define an example unit
+```{r}
+data(units2005)
+unit <- units2005[1,]
+```
+
+Define run and emissions parameters
+```{r}
+date_ref <- data.table( start_hour = 0,
+                        start_day = "2005-01-01",
+                        duration_emiss_hours = 1,
+                        duration_run_hours = 24)
+```
+ 
+```{r}
+dispersion_model <-
+  create_disp_model() %>%
+  add_emissions(
+    rate = 1,
+    duration = 1,
+    start_day = "2005-01-01",
+    start_hour = 0) %>%
+  add_species(
+    name = species_param$name,
+    pdiam = species_param$pdiam, 
+    density = species_param$density, 
+    shape_factor = species_param$shape_factor, 
+    ddep_vel = species_param$ddep_vel) %>% 
+  add_grid(
+    range = c(0.5, 0.5),
+    division = c(0.1, 0.1)) %>%
+  add_params(
+    lat = unit$Latitude,
+    lon = unit$Longitude,
+    height = unit$Height,
+    duration = 24,
+    start_day = "2005-01-01",
+    start_hour = 0,
+    direction = "forward",
+    met_type = "reanalysis"
+    ) %>%
+  run_model(npart = 100)
+```
+
+```{r}
+dispersion_df <-
+  dispersion_model %>% get_output_df() %>% data.table()
+```
+
+## trim particles if they go below zero
+disp_df <- trim_zero(dispersion_df)
+
+## Add parcel date and time
+disp_df$Pdate <- date_ref$start_day + disp_df$hour / 24
+
+# trims particles that are above the global max boundary value
+disp_df_trim <- disp_df[height <= max( values( hpbl_raster))]
+
+
+
+## combine dates and hours
+date_ref_h <- data.table( expand.grid( start_hour = start_hour_h,
+                                       start_day = vec_dates,
+                                       duration_emiss_hours = duration_emiss_hours_h,
+                                       duration_run_hours = duration_run_hours))
+
+## define species parameters
+species_param <- define_species( species)
+
+```
 
 
 
