@@ -43,15 +43,20 @@ unit <- units2005[1,]
 ```
 
 Define run and emissions parameters
+- four start hours throughout the day (```start_hour = c( 0, 6, 12, 18)```)
+- over 2 days starting on 1 January, 2005
+- for emission durations of 1 hour (```duration_emiss_hours = 1```)
+- air parcels tracked for 10 hours after emission (```duration_run_hours = 10```)
 ```{r}
 ## combine dates and hours
 date_ref_h <- data.table( expand.grid( start_hour = c( 0, 6, 12, 18),
                                        start_day = vec_dates <- seq.Date( from = "2005-01-01",
                                                                           length.out = 2,
                                                                           by = '1 day'),
-                                       duration_emiss_hours = duration_emiss_hours_h,
-                                       duration_run_hours = duration_run_hours))
+                                       duration_emiss_hours = 1,
+                                       duration_run_hours = 10))
 ```
+
 
 ```{r}
 dispersion_model <-
