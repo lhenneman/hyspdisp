@@ -24,6 +24,7 @@
 #' }
 #' @param p4s proj4string consistent across spatial objects
 #' @param overwrite overwrite files?
+#' @param met_dir where are the meteorological files stored
 #' @return This function returns a data table of zip codes with associated number of particles.
 
 
