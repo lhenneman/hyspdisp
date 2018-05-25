@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
+test.R
+.DS_Store
