@@ -90,7 +90,20 @@ hpbl_rasterin <- rotate( brick( x = hpbl_file,
                                 varname = 'hpbl' ))
 ```
 
+The following code will run HYSPLIT for 100 parcels for each emissions event (```npart = 100```), apply the appropriate trimming (i.e., after a parcel reaches 0m elevation and for parcels that exceed the boundary layer), and calculate ZIP code concentrations. The results and intermediate files will be saved in the current directory or as specified by ```prc_dir```.
 
+```{r}
+l <- mclapply( seq_len( nrow( date_ref_h)),
+               hyspdisp_fac_model,
+               date_ref_h = date_ref_h,
+               unit = unit,
+               species_param = species_param,
+               npart = 100,
+               zcta2 = zcta2,
+               crosswalk = crosswalk,
+               hpbl_raster = hpbl_rasterin,
+               link2zip = T)
+```
 
 ```{r}
 dispersion_model <-
