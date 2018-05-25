@@ -38,7 +38,8 @@ hyspdisp_fac_model <- function(dh = NULL,
                                crosswalk,
                                hpbl_raster,
                                overwrite = F,
-                               link2zip = T){
+                               link2zip = T,
+                               met_dir = getwd()){
 
   # Check if hpbl_raster is defined
   if( !hasArg( hpbl_raster))
@@ -109,7 +110,7 @@ hyspdisp_fac_model <- function(dh = NULL,
         start_hour = date_ref$start_hour,
         direction = "forward",
         met_type = "reanalysis",
-        met_dir = "/nfs/home/C/cchoirat/shared_space/ci3_nsaph/projects/hysplit/weather_data/",
+        met_dir = met_dir,
         binary_path = "/nfs/home/C/cchoirat/shared_space/ci3_l_zigler/software/hysplit/trunk/exec/hycs_std") %>%
       run_model(npart = npart)
 
