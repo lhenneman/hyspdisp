@@ -58,6 +58,40 @@ date_ref_h <- data.table( expand.grid( start_hour = c( 0, 6, 12, 18),
 ```
 
 
+The ZIP code linkage procedure requires a ZCTA-to-ZIP code Crosswalk file. ZCTAs are not exact geographic matches to ZIP codes, and multiple groups compile and maintain Crosswalk files. One example is the Crosswalk mainted by UDS Mapper. It can be retrieved and its names changed for consistency with ```hyspdisp``` functions with the following commands:
+```{r}
+library( openxlsx)
+crosswalk <- data.table( read.xlsx( xlsxFile = "https://www.udsmapper.org/docs/zip_to_zcta_2017.xlsx"))
+setnames( crosswalk, 
+          old = "ZIP_CODE", 
+          new = "ZIP")
+```
+
+Equally important is the ZCTA shapefile. These are available from multiple locations, including the US census website: \url{http://www2.census.gov/geo/tiger/GENZ2017/shp/cb_2017_us_zcta510_500k.zip}. Download the file, unzip it, and read in the shapefile:
+```{r}
+zcta_shapefile <- "SHAPE_FILE_PATH/cb_2015_us_zcta510_500k.shp"
+zcta <- shapefile( x = zcta_shapefile)
+```
+
+It is recommended to transform the ZCTA shapefile to a known projection to maintain consistency throughout the allocation process. Lat-lon projections are preferred, such as the [North American Albers Equal Area Conic](https://epsg.io/102008):
+```{r}
+p4s <- "+proj=aea +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m"
+zcta2 <- spTransform( x = zcta, 
+                      CRSobs = p4s)
+```
+
+The final input file is the monthly mean boundary layer heights from [NOAA's Earth System Research Library](https://www.esrl.noaa.gov/psd/data/gridded/data.20thC_ReanV2.monolevel.mm.html)
+
+```{r}
+hpbl_file <- "./hpbl.mon.mean.nc"
+download.file( url = "ftp://ftp.cdc.noaa.gov/Datasets/20thC_ReanV2/Monthlies/gaussian/monolevel/hpbl.mon.mean.nc",
+               destfile = hpbl_file)
+hpbl_rasterin <- rotate( brick( x = hpbl_file, 
+                                varname = 'hpbl' ))
+```
+
+
+
 ```{r}
 dispersion_model <-
   create_disp_model() %>%
