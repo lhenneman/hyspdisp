@@ -37,24 +37,24 @@ species_param <- define_species( "so2")
 species_param
 ```
 
-Define an example unit
+Load the included dataset of emissions, locations, and stack information for each coal facility in the United States (data from USEPA Air Markets Program Data and National Emissions inventory). Select the first unit for an example run, and display the data.
 ```{r}
 data(units2005)
 unit <- units2005[1,]
 unit
 ```
 
-Define run and emissions parameters
+Define run and emissions parameters. Four inputs are required, and the command ```expand.grid``` creates a table with all combinations. The four function parameters in this example are:
 - four start hours throughout the day (```start_hour = c( 0, 6, 12, 18)```)
-- over 2 days starting on 1 January, 2005
+- 2 days starting on 1 January, 2005
 - for emission durations of 1 hour (```duration_emiss_hours = 1```)
 - air parcels tracked for 10 hours after emission (```duration_run_hours = 10```)
 ```{r}
 ## combine dates and hours
 date_ref_h <- data.table( expand.grid( start_hour = c( 0, 6, 12, 18),
-                                       start_day = vec_dates <- seq.Date( from = "2005-01-01",
-                                                                          length.out = 2,
-                                                                          by = '1 day'),
+                                       start_day = seq.Date( from = "2005-01-01",
+                                                             length.out = 2,
+                                                             by = '1 day'),
                                        duration_emiss_hours = 1,
                                        duration_run_hours = 10))
 ```
@@ -99,7 +99,7 @@ l <- mclapply( seq_len( nrow( date_ref_h)),
                hyspdisp_fac_model,
                date_ref_h = date_ref_h,
                unit = unit,
-               species_param = species_param,
+               species = "so2",
                npart = 100,
                zcta2 = zcta2,
                crosswalk = crosswalk,
