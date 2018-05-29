@@ -3,6 +3,7 @@
 .RData
 .Ruserdata
 test.R
+test2.R
 .DS_Store
 .Rapp.history
 gridded_first_equalarea.png
