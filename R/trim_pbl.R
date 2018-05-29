@@ -3,7 +3,7 @@
 #' \code{trim_pbl} saves takes as input particle position and monthly PBL heights and outputs
 #' a trimmed data table.
 #'
-#' @param M data table of particle positions.
+#' @param Min data table of particle positions.
 #' Expected variables are:
 #' \enumerate{
 #'   \item ZIP (zipcode)
