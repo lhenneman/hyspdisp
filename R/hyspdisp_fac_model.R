@@ -16,13 +16,8 @@
 #'   \item ZCTA5CE10
 #' }
 #' @param crosswalk ZIP - ZCTA crosswalk file
-#' @param pbl_hts planetary boundary layer heights by zip code
-#' Expected variables are:
-#' \enumerate{
-#'   \item ZIP (zipcode)
-#'   \item hpbl (PBL height in same units as particle heights)
-#' }
-#' @param p4s proj4string consistent across spatial objects
+#' @param hpbl_raster planetary boundary layer heights by zip code
+#' @param link2zip overwrite files?
 #' @param overwrite overwrite files?
 #' @param met_dir where are the meteorological files stored
 #' @return This function returns a data table of zip codes with associated number of particles.
