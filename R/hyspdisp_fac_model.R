@@ -75,7 +75,7 @@ hyspdisp_fac_model <- function(dh = NULL,
     run_dir <- file.path(prc_dir, dh)
     
     ## preemptively remove if run_dir already exists, then create
-    unlink(run_dir)
+    unlink(run_dir, recursive = T)
     dir.create(run_dir, showWarnings = FALSE)
 
     ## Move to run directory
