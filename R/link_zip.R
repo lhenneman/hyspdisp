@@ -31,7 +31,7 @@ link_zip <- function( d,
                                      data = d,
                                      proj4string = CRS( "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
   spdf <- spTransform( spdf.in,
-                       proj4string(zcta2))
+                       proj4string(zc))
 
   if( gridfirst == F){
     o <- over( spdf, zc)
