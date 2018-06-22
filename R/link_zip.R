@@ -67,9 +67,10 @@ link_zip <- function( d,
                 e)
 
     #extract average concentrations over zip codes
-    or <- data.table( extract( r,
-                               zcta2,
+    or <- data.table( extract( r2,
+                               zc,
                                fun = mean,
+                               weights = T,
                                na.rm = T))
 
     setnames( or, 'V1', 'N')
