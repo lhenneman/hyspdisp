@@ -23,8 +23,7 @@ link_zip <- function( d,
                       zc = zcta2,
                       cw = crosswalk,
                       gridfirst = F,
-                      hpbl_file = NULL){
-  date <- d$Pdate[1]
+                      rasterin = NULL){
 
   xy <- d[,.( lon, lat)]
   spdf.in <- SpatialPointsDataFrame( coords = xy,
@@ -38,11 +37,10 @@ link_zip <- function( d,
     D <- data.table( na.omit( cbind(d, o)))
   } else {
     # extract data layer from raster, disaggregate to .1°x.1°
-    if( is.null( hpbl_file) == T)
-      stop( "Need PBL raster file!")
-    pbl_layer <- subset_nc_date( hpbl_file = hpbl_file,
-                                 varname = 'hpbl',
-                                 vardate = date)
+    if( is.null( rasterin) == T)
+      stop( "Need PBL raster!")
+    pbl_layer <- rasterin
+
     suppressWarnings(
       pbl_layer.t <- projectRaster( pbl_layer,
                                     crs = CRS( proj4string( spdf)))
