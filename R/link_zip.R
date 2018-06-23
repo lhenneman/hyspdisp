@@ -67,13 +67,26 @@ link_zip <- function( d,
                      snap = 'out',
                      e)
 
-    #extract average concentrations over zip codes
-    or <- data.table( extract( r2,
-                               zc_trim,
-                               weights = T,
-                               na.rm = T))
+    #define parallelizable extract function
+    extract_one <- function( i,
+                             zipcode,
+                             grid){
+      data.table( extract( grid,
+                           zipcode[i,],
+                           weights = T,
+                           fun = mean,
+                           normalizeWeights = F,
+                           na.rm = T))
+    }
 
-    setnames( or, 'V1', 'N')
+
+    #extract average concentrations over zip codes
+    or <- rbindlist(mclapply( seq_along( zc_trim),
+                        extract_one,
+                        zc_trim,
+                        r2))
+
+        setnames( or, 'V1', 'N')
     D <- data.table( cbind( zc_trim@data,
                             or))
   }
