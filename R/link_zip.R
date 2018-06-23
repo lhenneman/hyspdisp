@@ -70,7 +70,6 @@ link_zip <- function( d,
     #extract average concentrations over zip codes
     or <- data.table( extract( r2,
                                zc_trim,
-                               fun = mean,
                                weights = T,
                                na.rm = T))
 
