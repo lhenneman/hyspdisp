@@ -71,7 +71,7 @@ link_zip <- function( d,
                      snap = 'out',
                      e)
 
-    zc_groups <- ceiling(seq_along(zc_trim) / 5000)
+    zc_groups <- ceiling(seq_along(zc_trim) / 1000)
 
     #extract average concentrations over zip codes
     #name column as 'N', combine with zip codes
