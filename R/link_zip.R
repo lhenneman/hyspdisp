@@ -66,15 +66,33 @@ link_zip <- function( d,
                 e)
     r3 <- rasterToPolygons(r2)
 
+    #crop zip codes to only use ones over the extent
     zc_trim <- crop( zc,
                      snap = 'out',
                      e)
 
+    zc_groups <- ceiling(seq_along(zc_trim) / 1000)
+
     #extract average concentrations over zip codes
     #name column as 'N', combine with zip codes
-    or <- over( zc_trim,
-                 r3,
-                 fn = mean)
+    #define function to not run out of memory
+    over_fn <- function( group,
+                         zc_dt,
+                         groups,
+                         raster_obj) {
+      over( zc_dt[ groups %in% group,],
+            raster_obj,
+            fn = mean)
+    }
+
+    or <- data.table( rbindlist( lapply( unique( zc_groups),
+                                         over_fn,
+                                         zc_trim,
+                                         zc_groups,
+                                         r3)))
+
+
+
     setnames(or, names(pbl_layer), 'N')
     D <- data.table( cbind( zc_trim@data,
                             or))
