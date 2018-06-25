@@ -46,7 +46,7 @@ link_zip <- function( d,
                                     crs = CRS( proj4string( spdf)))
     )
     pbl_layer.d <- disaggregate( pbl_layer.t,
-                                 fact = 30)
+                                 fact = 10)
 
 
     # count number of particles in each cell,
@@ -59,34 +59,23 @@ link_zip <- function( d,
     r[as.numeric( names( tab))] <- tab / pbls
 
     # crop around point locations for faster extracting
+    # and convert to polygons for faster extracting
     e <- extent(spdf)
     r2 <- crop( trim(r,
                      padding = 1),
                 e)
+    r3 <- rasterToPolygons(r2)
+
     zc_trim <- crop( zc,
                      snap = 'out',
                      e)
 
-    #define parallelizable extract function
-    extract_one <- function( i,
-                             zipcode,
-                             grid){
-      data.table( extract( grid,
-                           zipcode[i,],
-                           weights = T,
-                           fun = mean,
-                           normalizeWeights = F,
-                           na.rm = T))
-    }
-
-
     #extract average concentrations over zip codes
-    or <- rbindlist(mclapply( seq_along( zc_trim),
-                        extract_one,
-                        zc_trim,
-                        r2))
-
-        setnames( or, 'V1', 'N')
+    #name column as 'N', combine with zip codes
+    or <- over( zc_trim,
+                 r3,
+                 fn = mean)
+    setnames(or, names(pbl_layer), 'N')
     D <- data.table( cbind( zc_trim@data,
                             or))
   }
