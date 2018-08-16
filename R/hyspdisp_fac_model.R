@@ -1,32 +1,10 @@
 #' Run Hysplit dispersion, save data, link to zips
-#'
-#' \code{hyspdisp_fac_model}  takes multiple inputs and
-#' outputs counts of particles per zip code.
-#'
-#' @param dh row numbers of \code{date_ref_h}. If NULL (default), defaults to 1, i.e., SplitR run on first row of \code{date_ref_h}
-#' @param date_ref_h table of parameters for the dispersion run.
-#' @param unit emissions unit information.
-#' @param species particle species. One either of 'so2' or 'so4'.
-#' @param npart number of particles emitted per hour. Defaults to 100
-#' @param current_dir current directory. Defaults to current directory
-#' @param prc_dir run directory. Defaults to NULL. If NULL, creates a directory named prc_`dh`_TODAYSDATE
-#' @param zcta2 zip code \code{SpatialPolygonsDataFrame} object.
-#' Expected variables are:
-#' \enumerate{
-#'   \item ZCTA5CE10
-#' }
-#' @param crosswalk ZIP - ZCTA crosswalk file
-#' @param hpbl_raster planetary boundary layer heights by zip code
-#' @param link2zip overwrite files?
-#' @param overwrite overwrite files?
-#' @param met_dir where are the meteorological files stored
-#' @return This function returns a data table of zip codes with associated number of particles.
 
-
-hyspdisp_fac_model <- function(date_ref_h = NULL,
-                               start_day = NULL,
-                               duration_emiss_hours = NULL,
-                               duration_run_hours = NULL,
+hyspdisp_fac_model <- function(run_ref_tab,
+                               start_day,
+                               start_hour,
+                               duration_emiss_hours,
+                               duration_run_hours,
                                unit,
                                species,
                                zcta2,
@@ -37,10 +15,28 @@ hyspdisp_fac_model <- function(date_ref_h = NULL,
                                link2zip = T,
                                prc_dir = NULL,
                                current_dir = getwd(),
-                               met_dir = getwd()){
+                               met_dir = file.path( getwd(), 'metfiles'),
+                               keep.hysplit.files = FALSE){
 
   # check if all required model setup parameters are entered
-
+  has_run_ref_tab <- hasArg( run_ref_tab)
+  has_individual_refs <- sum( hasArg( start_day),
+                              hasArg( start_hour),
+                              hasArg( duration_emiss_hours),
+                              hasArg( duration_run_hours))
+  if( !has_run_ref_tab & has_individual_refs < 4)
+    stop( "Please include either {run_ref_tab} OR {start_day, start_hour, duration_emiss_hours, and duration_run_hours}")
+  if( has_run_ref_tab & has_individual_refs == 4)
+    warning( "{run_ref_tab} AND {start_day, start_hour, duration_emiss_hours, and duration_run_hours} included, defaulting to data in {run_ref_tab}")
+  if( has_run_ref_tab & nrow( run_ref_tab) > 1){
+    warning( "{run_ref_tab} has > 1 row; defaulting to the first row")
+    run_ref_tab <- run_ref_tab[1,]
+  }
+  if( !has_run_ref_tab)
+    run_ref_tab <- data.table( start_hour = start_hour,
+                               start_day = start_day,
+                               duration_emiss_hours = duration_emiss_hours,
+                               duration_run_hours = duration_run_hours)
 
   # Check if hpbl_raster is defined
   if( !hasArg( hpbl_raster))
@@ -50,34 +46,48 @@ hyspdisp_fac_model <- function(date_ref_h = NULL,
   species_param <- define_species( species)
 
   # Create process directory in current directory if not defined
+  # Create temporary data to save output
+  # Create directory to store met files if it does not exist
   if( is.null( prc_dir)){
-    prc_dir <- file.path(current_dir, paste0( 'prc_',
-                                              dh,
-                                              '_',
+    prc_dir <- file.path(current_dir, paste0( 'hyspdisp_',
                                               Sys.Date()))
   }
+  tmp_dir <- file.path( prc_dir, 'partial_trimmed_parcel_locs')
+  zpc_dir <- file.path( prc_dir, 'zip_counts')
   dir.create(prc_dir, showWarnings = FALSE)
+  dir.create(tmp_dir, showWarnings = FALSE)
+  dir.create(zpc_dir, showWarnings = FALSE)
+  dir.create(met_dir, showWarnings = FALSE)
 
 
   ## select date and hour
-  date_ref <- date_ref_h[dh]
-  print(paste0('Date: ', format(date_ref[,2], format = "%Y-%m-%d"), ', Hour: ', date_ref[,1]))
+  date_ref <- run_ref_tab[1,]
+  print(paste0('Date: ', format(date_ref$start_day, format = "%Y-%m-%d"), ', Hour: ', date_ref$start_hour))
 
-  ## Check if output exists
-  output_file <- file.path(prc_dir,
-                           "tmp",
-                           paste0("hyspdisp_",
-                                  unit$ID, "_",
-                                  date_ref$start_day, "_",
-                                  formatC(date_ref$start_hour, width = 2, format = "d", flag = "0"),
-                                  ".csv"))
-  print(output_file)
-  tmp.exists <- list.files( file.path( prc_dir, "tmp"), full.names = T)
+  ## Define output file names
+  output_file <- file.path( tmp_dir,
+                            paste0("hyspdisp_",
+                                   unit$ID, "_",
+                                   date_ref$start_day, "_",
+                                   formatC(date_ref$start_hour, width = 2, format = "d", flag = "0"),
+                                   ".csv"))
+  zip_output_file <- file.path( zpc_dir,
+                                paste0("ziplinks_",
+                                       unit$ID, "_",
+                                       date_ref$start_day, "_",
+                                       formatC(date_ref$start_hour, width = 2, format = "d", flag = "0"),
+                                       ".csv"))
+
+  ## Check if output parcel locations file already exists
+  tmp.exists <- list.files( tmp_dir,
+                            full.names = T)
 
   `%ni%` <- Negate(`%in%`)
   if( output_file %ni% tmp.exists | overwrite == T){
+    print( "Defining HYSPLIT model parameters and running the model.")
+
     ## Create run directory
-    run_dir <- file.path(prc_dir, dh)
+    run_dir <- file.path(prc_dir, unit$ID)
 
     ## preemptively remove if run_dir already exists, then create
     unlink(run_dir, recursive = T)
@@ -114,8 +124,9 @@ hyspdisp_fac_model <- function(date_ref_h = NULL,
         start_hour = date_ref$start_hour,
         direction = "forward",
         met_type = "reanalysis",
-        met_dir = met_dir,
-        binary_path = "/nfs/home/C/cchoirat/shared_space/ci3_l_zigler/software/hysplit/trunk/exec/hycs_std") %>%
+        met_dir = met_dir#,
+        #   binary_path = "/nfs/home/C/cchoirat/shared_space/ci3_l_zigler/software/hysplit/trunk/exec/hycs_std"
+      ) %>%
       run_model(npart = npart)
 
     dispersion_df <-
@@ -136,13 +147,19 @@ hyspdisp_fac_model <- function(date_ref_h = NULL,
 
     ## Save R data frame
     save.vars <- c('lon', 'lat', 'height', 'Pdate', 'hour')
-    write.csv(disp_df_trim[,save.vars, with = F], output_file)
+    partial_trimmed_parcel_locs <- disp_df_trim[,save.vars, with = F]
+    write.csv( partial_trimmed_parcel_locs,
+               output_file)
+    print( paste( "Partial trimmed parcel locations (below height 0 and the highest PBL height) written to", output_file))
 
     ## Erase run files
-    unlink(run_dir, recursive = TRUE)
+    if( !keep.hysplit.files)
+      unlink(run_dir, recursive = TRUE)
   }
 
   if( link2zip == T){
+    print( "Linking parcel locations to ZIP codes. This could take a few minutes...")
+
     # Check if crosswalk is defined
     if( !hasArg( zcta2))
       stop( "Please define a zcta2 file to link zips")
@@ -159,12 +176,22 @@ hyspdisp_fac_model <- function(date_ref_h = NULL,
                              rasterin = hpbl_raster)
     ## link to zips
     disp_df_link <- link_zip( disp_df_trim,
-                              gridfirst = T)
+                              gridfirst = T,
+                              rasterin = hpbl_raster)[, .(ZIP, N)]
 
-    ## find fraction of particles per zip
-    # tot_by_zip <- zip_count(disp_df_link)
+    # Write to output csv file
+    write.csv( disp_df_link,
+               zip_output_file)
+    print( paste( "ZIP code parcel counts written to", zip_output_file))
 
-    out <- disp_df_link[, .(ZIP, N)]
-    return( out)
   }
+
+
+  if( link2zip == F){
+    out <- partial_trimmed_parcel_locs
+  } else
+    out <- list( partial_trimmed_parcel_locs = partial_trimmed_parcel_locs,
+                 zip_parcel_counts = disp_df_link)
+  return( out)
+
 }
