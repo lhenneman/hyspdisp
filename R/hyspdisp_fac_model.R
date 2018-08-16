@@ -16,14 +16,10 @@
 #'   \item ZCTA5CE10
 #' }
 #' @param crosswalk ZIP - ZCTA crosswalk file
-#' @param pbl_hts planetary boundary layer heights by zip code
-#' Expected variables are:
-#' \enumerate{
-#'   \item ZIP (zipcode)
-#'   \item hpbl (PBL height in same units as particle heights)
-#' }
-#' @param p4s proj4string consistent across spatial objects
+#' @param hpbl_raster planetary boundary layer heights by zip code
+#' @param link2zip overwrite files?
 #' @param overwrite overwrite files?
+#' @param met_dir where are the meteorological files stored
 #' @return This function returns a data table of zip codes with associated number of particles.
 
 
@@ -38,7 +34,8 @@ hyspdisp_fac_model <- function(dh = NULL,
                                crosswalk,
                                hpbl_raster,
                                overwrite = F,
-                               link2zip = T){
+                               link2zip = T,
+                               met_dir = getwd()){
 
   # Check if hpbl_raster is defined
   if( !hasArg( hpbl_raster))
@@ -76,6 +73,9 @@ hyspdisp_fac_model <- function(dh = NULL,
   if( output_file %ni% tmp.exists | overwrite == T){
     ## Create run directory
     run_dir <- file.path(prc_dir, dh)
+    
+    ## preemptively remove if run_dir already exists, then create
+    unlink(run_dir, recursive = T)
     dir.create(run_dir, showWarnings = FALSE)
 
     ## Move to run directory
@@ -92,7 +92,7 @@ hyspdisp_fac_model <- function(dh = NULL,
         start_hour = date_ref$start_hour) %>%
       add_species(
         name = species_param$name,
-        pdiam = 0, # okay
+        pdiam = species_param$pdiam, # okay
         density = 0, # okay
         shape_factor = 0, # okay
         #resuspension = species_param$resuspension
@@ -109,7 +109,7 @@ hyspdisp_fac_model <- function(dh = NULL,
         start_hour = date_ref$start_hour,
         direction = "forward",
         met_type = "reanalysis",
-        met_dir = "/nfs/home/C/cchoirat/shared_space/ci3_nsaph/projects/hysplit/weather_data/",
+        met_dir = met_dir,
         binary_path = "/nfs/home/C/cchoirat/shared_space/ci3_l_zigler/software/hysplit/trunk/exec/hycs_std") %>%
       run_model(npart = npart)
 

@@ -3,7 +3,7 @@
 #' \code{trim_pbl} saves takes as input particle position and monthly PBL heights and outputs
 #' a trimmed data table.
 #'
-#' @param M data table of particle positions.
+#' @param Min data table of particle positions.
 #' Expected variables are:
 #' \enumerate{
 #'   \item ZIP (zipcode)
@@ -15,7 +15,7 @@
 #' @return This function returns a trimmed dataset.
 
 trim_pbl <- function(Min,
-                     hpbl_file){
+                     rasterin){
   Sys.setenv(TZ='UTC')
   M <- copy(Min)
   M[, ref := 1:nrow(M)]
@@ -27,7 +27,7 @@ trim_pbl <- function(Min,
                                              yr = unique(M[,Pyear]))))
 
   #Convert M to spatial points data frame
-  rasterin <- rotate(brick(hpbl_file, varname = 'hpbl' ))
+  # rasterin <- rotate(brick(hpbl_file, varname = 'hpbl' ))
   xy <- M[,.(lon, lat)]
   spdf <- SpatialPointsDataFrame(coords = xy, data = M,
                                  proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
@@ -48,7 +48,7 @@ trim_pbl <- function(Min,
   }
   spdf.dt <- spdf.dt[height < pbl]
   return(M[spdf.dt$ref,
-           .(lon, lat, height, Pdate)])
+           .(lon, lat, height, Pdate, hour)])
 }
 
 

@@ -23,32 +23,30 @@ link_zip <- function( d,
                       zc = zcta2,
                       cw = crosswalk,
                       gridfirst = F,
-                      hpbl_file = NULL){
-  date <- min( d$Pdate)
+                      rasterin = NULL){
 
   xy <- d[,.( lon, lat)]
   spdf.in <- SpatialPointsDataFrame( coords = xy,
                                      data = d,
                                      proj4string = CRS( "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
   spdf <- spTransform( spdf.in,
-                       proj4string(zcta2))
+                       proj4string(zc))
 
   if( gridfirst == F){
     o <- over( spdf, zc)
     D <- data.table( na.omit( cbind(d, o)))
   } else {
     # extract data layer from raster, disaggregate to .1°x.1°
-    if( is.null( hpbl_file) == T)
-      stop( "Need PBL raster file!")
-    pbl_layer <- subset_nc_date( hpbl_file = hpbl_file,
-                                 varname = 'hpbl',
-                                 vardate = date)
+    if( is.null( rasterin) == T)
+      stop( "Need PBL raster!")
+    pbl_layer <- rasterin
+
     suppressWarnings(
       pbl_layer.t <- projectRaster( pbl_layer,
                                     crs = CRS( proj4string( spdf)))
     )
     pbl_layer.d <- disaggregate( pbl_layer.t,
-                                 fact = 30)
+                                 fact = 10)
 
 
     # count number of particles in each cell,
@@ -61,19 +59,42 @@ link_zip <- function( d,
     r[as.numeric( names( tab))] <- tab / pbls
 
     # crop around point locations for faster extracting
+    # and convert to polygons for faster extracting
     e <- extent(spdf)
     r2 <- crop( trim(r,
                      padding = 1),
                 e)
+    r3 <- rasterToPolygons(r2)
+
+    #crop zip codes to only use ones over the extent
+    zc_trim <- crop( zc,
+                     snap = 'out',
+                     e)
+
+    zc_groups <- ceiling(seq_along(zc_trim) / 1000)
 
     #extract average concentrations over zip codes
-    or <- data.table( extract( r,
-                               zcta2,
-                               fun = mean,
-                               na.rm = T))
+    #name column as 'N', combine with zip codes
+    #define function to not run out of memory
+    over_fn <- function( group,
+                         zc_dt,
+                         groups,
+                         raster_obj) {
+      over( zc_dt[ groups %in% group,],
+            raster_obj,
+            fn = mean)
+    }
 
-    setnames( or, 'V1', 'N')
-    D <- data.table( cbind( zc@data,
+    or <- data.table( rbindlist( lapply( unique( zc_groups),
+                                         over_fn,
+                                         zc_trim,
+                                         zc_groups,
+                                         r3)))
+
+
+
+    setnames(or, names(pbl_layer), 'N')
+    D <- data.table( cbind( zc_trim@data,
                             or))
   }
   setnames( D, 'ZCTA5CE10', 'ZCTA')
