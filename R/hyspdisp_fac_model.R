@@ -27,14 +27,14 @@ hyspdisp_fac_model <- function(dh = NULL,
                                date_ref_h,
                                unit,
                                species,
-                               npart = 100,
-                               current_dir = getwd(),
-                               prc_dir = NULL,
                                zcta2,
                                crosswalk,
                                hpbl_raster,
+                               npart = 100,
                                overwrite = F,
                                link2zip = T,
+                               prc_dir = NULL,
+                               current_dir = getwd(),
                                met_dir = getwd()){
 
   # Check if hpbl_raster is defined
@@ -73,7 +73,7 @@ hyspdisp_fac_model <- function(dh = NULL,
   if( output_file %ni% tmp.exists | overwrite == T){
     ## Create run directory
     run_dir <- file.path(prc_dir, dh)
-    
+
     ## preemptively remove if run_dir already exists, then create
     unlink(run_dir, recursive = T)
     dir.create(run_dir, showWarnings = FALSE)
