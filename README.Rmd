@@ -19,7 +19,7 @@ This example walks through an example run of ```hyspdisp``` functions.
 ### install ```hyspdisp``` from github and load 
 First, download and install ```hyspdisp```
 ```{r}
-devtools::install_github("lhenneman/hyspdisp", ref = "dev2")
+devtools::install_github("lhenneman/hyspdisp@dev2", force = TRUE)
 library(hyspdisp)
 ```
 
@@ -51,7 +51,7 @@ date_ref_h <- data.table( expand.grid( start_hour = c( 0, 6, 12, 18),
                                                              length.out = 2,
                                                              by = '1 day'),
                                        duration_emiss_hours = 1,
-                                       duration_run_hours = 10))
+                                       duration_run_hours = 2))
 ```
 
 
