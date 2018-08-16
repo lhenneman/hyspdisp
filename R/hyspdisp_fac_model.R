@@ -150,7 +150,7 @@ hyspdisp_fac_model <- function(run_ref_tab,
     partial_trimmed_parcel_locs <- disp_df_trim[,save.vars, with = F]
     write.csv( partial_trimmed_parcel_locs,
                output_file)
-    print( paste( "Partial trimmed parcel locations (below height 0 and the highest PBL height) written to", output_file))
+    print( paste( "Partial trimmed parcel locations (below height 0 and the highest PBL height) written to ", output_file))
 
     ## Erase run files
     if( !keep.hysplit.files)
