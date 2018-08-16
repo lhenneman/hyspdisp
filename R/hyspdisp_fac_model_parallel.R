@@ -35,7 +35,8 @@ hyspdisp_fac_model <- function(dh = NULL,
                                link2zip = T,
                                prc_dir = NULL,
                                current_dir = getwd(),
-                               met_dir = getwd()){
+                               met_dir = getwd(),
+                               keep.hysplit.files = FALSE){
 
   # Check if hpbl_raster is defined
   if( !hasArg( hpbl_raster))
@@ -71,7 +72,9 @@ hyspdisp_fac_model <- function(dh = NULL,
 
   `%ni%` <- Negate(`%in%`)
   if( output_file %ni% tmp.exists | overwrite == T){
-    ## Create run directory
+    print( "Defining HYSPLIT model parameters and running the model.")
+
+        ## Create run directory
     run_dir <- file.path(prc_dir, dh)
 
     ## preemptively remove if run_dir already exists, then create
@@ -138,6 +141,8 @@ hyspdisp_fac_model <- function(dh = NULL,
   }
 
   if( link2zip == T){
+    print( "Linking parcel locations to ZIP codes. This could take a few minutes...")
+
     # Check if crosswalk is defined
     if( !hasArg( zcta2))
       stop( "Please define a zcta2 file to link zips")
@@ -154,7 +159,8 @@ hyspdisp_fac_model <- function(dh = NULL,
                              rasterin = hpbl_raster)
     ## link to zips
     disp_df_link <- link_zip( disp_df_trim,
-                              gridfirst = T)
+                              gridfirst = T,
+                              rasterin = hpbl_raster)
 
     ## find fraction of particles per zip
     # tot_by_zip <- zip_count(disp_df_link)
