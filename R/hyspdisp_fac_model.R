@@ -150,7 +150,7 @@ hyspdisp_fac_model <- function(run_ref_tab,
     partial_trimmed_parcel_locs <- disp_df_trim[,save.vars, with = F]
     write.csv( partial_trimmed_parcel_locs,
                output_file)
-    print( paste( "Partial trimmed parcel locations (below height 0 and the highest PBL height) written to ", output_file))
+    print( paste( "Partial trimmed parcel locations (below height 0 and the highest PBL height) written to", output_file))
 
     ## Erase run files
     if( !keep.hysplit.files)
@@ -189,9 +189,10 @@ hyspdisp_fac_model <- function(run_ref_tab,
 
   if( link2zip == F){
     out <- partial_trimmed_parcel_locs
-  } else
+  } else {
     out <- list( partial_trimmed_parcel_locs = partial_trimmed_parcel_locs,
                  zip_parcel_counts = disp_df_link)
+  }
   return( out)
 
 }
