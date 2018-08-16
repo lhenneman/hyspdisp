@@ -23,8 +23,10 @@
 #' @return This function returns a data table of zip codes with associated number of particles.
 
 
-hyspdisp_fac_model <- function(dh = NULL,
-                               date_ref_h,
+hyspdisp_fac_model <- function(date_ref_h = NULL,
+                               start_day = NULL,
+                               duration_emiss_hours = NULL,
+                               duration_run_hours = NULL,
                                unit,
                                species,
                                zcta2,
@@ -36,6 +38,9 @@ hyspdisp_fac_model <- function(dh = NULL,
                                prc_dir = NULL,
                                current_dir = getwd(),
                                met_dir = getwd()){
+
+  # check if all required model setup parameters are entered
+
 
   # Check if hpbl_raster is defined
   if( !hasArg( hpbl_raster))
