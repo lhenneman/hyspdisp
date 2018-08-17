@@ -14,8 +14,10 @@ hyspdisp_fac_model <- function(run_ref_tab,
                                overwrite = F,
                                link2zip = T,
                                prc_dir = NULL,
+                               hyo_dir = NULL,
                                current_dir = getwd(),
                                met_dir = file.path( getwd(), 'metfiles'),
+                               binary_path = NULL,
                                keep.hysplit.files = FALSE){
 
   # check if all required model setup parameters are entered
@@ -27,9 +29,9 @@ hyspdisp_fac_model <- function(run_ref_tab,
   if( !has_run_ref_tab & has_individual_refs < 4)
     stop( "Please include either {run_ref_tab} OR {start_day, start_hour, duration_emiss_hours, and duration_run_hours}")
   if( has_run_ref_tab & has_individual_refs == 4)
-    warning( "{run_ref_tab} AND {start_day, start_hour, duration_emiss_hours, and duration_run_hours} included, defaulting to data in {run_ref_tab}")
+    print( "{run_ref_tab} AND {start_day, start_hour, duration_emiss_hours, and duration_run_hours} included, defaulting to data in {run_ref_tab}")
   if( has_run_ref_tab & nrow( run_ref_tab) > 1){
-    warning( "{run_ref_tab} has > 1 row; defaulting to the first row")
+    print( "{run_ref_tab} has > 1 row; defaulting to the first row")
     run_ref_tab <- run_ref_tab[1,]
   }
   if( !has_run_ref_tab)
@@ -52,20 +54,21 @@ hyspdisp_fac_model <- function(run_ref_tab,
     prc_dir <- file.path(current_dir, paste0( 'hyspdisp_',
                                               Sys.Date()))
   }
-  tmp_dir <- file.path( prc_dir, 'partial_trimmed_parcel_locs')
+  if( is.null( hyo_dir)){
+    hyo_dir <- file.path( prc_dir, 'partial_trimmed_parcel_locs')
+  }
   zpc_dir <- file.path( prc_dir, 'zip_counts')
   dir.create(prc_dir, showWarnings = FALSE)
-  dir.create(tmp_dir, showWarnings = FALSE)
+  dir.create(hyo_dir, showWarnings = FALSE)
   dir.create(zpc_dir, showWarnings = FALSE)
   dir.create(met_dir, showWarnings = FALSE)
-
 
   ## select date and hour
   date_ref <- run_ref_tab[1,]
   print(paste0('Date: ', format(date_ref$start_day, format = "%Y-%m-%d"), ', Hour: ', date_ref$start_hour))
 
   ## Define output file names
-  output_file <- file.path( tmp_dir,
+  output_file <- file.path( hyo_dir,
                             paste0("hyspdisp_",
                                    unit$ID, "_",
                                    date_ref$start_day, "_",
@@ -79,7 +82,7 @@ hyspdisp_fac_model <- function(run_ref_tab,
                                        ".csv"))
 
   ## Check if output parcel locations file already exists
-  tmp.exists <- list.files( tmp_dir,
+  tmp.exists <- list.files( hyo_dir,
                             full.names = T)
 
   `%ni%` <- Negate(`%in%`)
@@ -98,6 +101,7 @@ hyspdisp_fac_model <- function(run_ref_tab,
     print(run_dir)
 
 
+    ## Define the dispersion model
     dispersion_model <-
       create_disp_model() %>%
       add_emissions(
@@ -124,11 +128,12 @@ hyspdisp_fac_model <- function(run_ref_tab,
         start_hour = date_ref$start_hour,
         direction = "forward",
         met_type = "reanalysis",
-        met_dir = met_dir#,
-        #   binary_path = "/nfs/home/C/cchoirat/shared_space/ci3_l_zigler/software/hysplit/trunk/exec/hycs_std"
+        met_dir = met_dir,
+        binary_path = binary_path
       ) %>%
       run_model(npart = npart)
 
+    ## Extract output from the dispersion model
     dispersion_df <-
       dispersion_model %>% get_output_df() %>% data.table()
 
