@@ -20,6 +20,5 @@ Depends:
     magrittr,
     raster,
     sp,
-    SplitR,
-    parallel
+    SplitR
 Suggests:
