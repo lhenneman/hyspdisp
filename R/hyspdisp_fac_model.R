@@ -41,10 +41,6 @@ hyspdisp_fac_model <- function(run_ref_tab,
                                duration_emiss_hours = duration_emiss_hours,
                                duration_run_hours = duration_run_hours)
 
-  # Check if hpbl_raster is defined
-  if( !hasArg( hpbl_raster))
-    stop( "Please define a hpbl_raster file")
-
   ## define species parameters
   species_param <- define_species( species)
 
@@ -90,6 +86,10 @@ hyspdisp_fac_model <- function(run_ref_tab,
   `%ni%` <- Negate(`%in%`)
   if( output_file %ni% tmp.exists | overwrite == T){
     print( "Defining HYSPLIT model parameters and running the model.")
+    # Check if hpbl_raster is defined
+    if( !hasArg( hpbl_raster))
+      stop( "Please define a hpbl_raster file")
+
 
     ## Create run directory
     run_dir <- file.path( prc_dir,
@@ -149,7 +149,7 @@ hyspdisp_fac_model <- function(run_ref_tab,
     disp_df$Pdate <- date_ref$start_day + disp_df$hour / 24
 
     # trims particles that are above the global max boundary value
-    disp_df_trim <- disp_df[height <= max( values( hpbl_raster))]
+    disp_df_trim <- disp_df[height <= 2665]
 
     ## Move back to main directory
     setwd(current_dir)

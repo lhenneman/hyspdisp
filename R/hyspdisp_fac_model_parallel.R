@@ -19,9 +19,6 @@ hyspdisp_fac_model_parallel <- function(x,
                                         binary_path = NULL,
                                         keep.hysplit.files = FALSE){
 
-  # Check if hpbl_raster is defined
-  if( !hasArg( hpbl_raster))
-    stop( "Please define a hpbl_raster file")
 
   ## define species parameters
   species_param <- define_species( species)
@@ -126,7 +123,7 @@ hyspdisp_fac_model_parallel <- function(x,
     disp_df$Pdate <- date_ref$start_day + disp_df$hour / 24
 
     # trims particles that are above the global max boundary value
-    disp_df_trim <- disp_df[height <= max( values( hpbl_raster))]
+    disp_df_trim <- disp_df[height <= 2665]
 
     ## Move back to main directory
     setwd(current_dir)
@@ -146,6 +143,10 @@ hyspdisp_fac_model_parallel <- function(x,
 
   if( link2zip == T){
     print( "Linking parcel locations to ZIP codes. This could take a few minutes...")
+
+    # Check if hpbl_raster is defined
+    if( !hasArg( hpbl_raster))
+      stop( "Please define a hpbl_raster file")
 
     # Check if crosswalk is defined
     if( !hasArg( zcta2))
