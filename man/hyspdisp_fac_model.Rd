@@ -28,6 +28,7 @@ hyspdisp_fac_model(run_ref_tab,
                    met_dir = file.path( getwd(), 'metfiles'),
                    binary_path = NULL,
                    keep.hysplit.files = FALSE)
+
 hyspdisp_fac_model_parallel(x,
                             run_ref_tab,
                             unit,
