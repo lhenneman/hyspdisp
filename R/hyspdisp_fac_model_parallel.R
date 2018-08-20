@@ -12,6 +12,8 @@ hyspdisp_fac_model_parallel <- function(x,
                                         overwrite = F,
                                         link2zip = T,
                                         prc_dir = NULL,
+                                        hyo_dir = NULL,
+                                        zpc_dir = NULL,
                                         current_dir = getwd(),
                                         met_dir = file.path( getwd(), 'metfiles'),
                                         binary_path = NULL,
@@ -28,21 +30,21 @@ hyspdisp_fac_model_parallel <- function(x,
   # Create temporary data to save output
   # Create directory to store met files if it does not exist
   if( is.null( prc_dir)){
-    prc_dir <- file.path(current_dir, paste0( 'hyspdisp_',
-                                              Sys.Date()))
+    prc_dir <- file.path(current_dir, paste0( 'hyspdisp_', Sys.Date()))
   }
   if( is.null( hyo_dir)){
     hyo_dir <- file.path( prc_dir, 'partial_trimmed_parcel_locs')
   }
-  zpc_dir <- file.path( prc_dir, 'zip_counts')
+  if( is.null( zpc_dir)){
+    zpc_dir <- file.path( prc_dir, 'zip_counts')
+  }
   dir.create(prc_dir, showWarnings = FALSE)
   dir.create(hyo_dir, showWarnings = FALSE)
   dir.create(zpc_dir, showWarnings = FALSE)
   dir.create(met_dir, showWarnings = FALSE)
 
-
   ## select date and hour
-  date_ref <- run_ref_tab[1,]
+  date_ref <- run_ref_tab[x,]
   print(paste0('Date: ', format(date_ref$start_day, format = "%Y-%m-%d"), ', Hour: ', date_ref$start_hour))
 
   ## Define output file names
@@ -64,11 +66,15 @@ hyspdisp_fac_model_parallel <- function(x,
                             full.names = T)
 
   `%ni%` <- Negate(`%in%`)
+  print(output_file %ni% tmp.exists | overwrite == T)
   if( output_file %ni% tmp.exists | overwrite == T){
     print( "Defining HYSPLIT model parameters and running the model.")
 
     ## Create run directory
-    run_dir <- file.path(prc_dir, unit$ID)
+    run_dir <- file.path( prc_dir,
+                          paste0( unit$ID, '_',
+                                  paste( date_ref,
+                                         collapse = '_')))
 
     ## preemptively remove if run_dir already exists, then create
     unlink(run_dir, recursive = T)
@@ -128,10 +134,14 @@ hyspdisp_fac_model_parallel <- function(x,
 
     ## Save R data frame
     save.vars <- c('lon', 'lat', 'height', 'Pdate', 'hour')
-    write.csv(disp_df_trim[,save.vars, with = F], output_file)
+    partial_trimmed_parcel_locs <- disp_df_trim[,save.vars, with = F]
+    write.csv( partial_trimmed_parcel_locs,
+               output_file)
+    print( paste( "Partial trimmed parcel locations (below height 0 and the highest PBL height) written to", output_file))
 
     ## Erase run files
-    unlink(run_dir, recursive = TRUE)
+    if( !keep.hysplit.files)
+      unlink(run_dir, recursive = TRUE)
   }
 
   if( link2zip == T){
@@ -156,10 +166,9 @@ hyspdisp_fac_model_parallel <- function(x,
                               gridfirst = T,
                               rasterin = hpbl_raster)
 
-    ## find fraction of particles per zip
-    # tot_by_zip <- zip_count(disp_df_link)
-
-    out <- disp_df_link[, .(ZIP, N)]
-    return( out)
+    # Write to output csv file
+    write.csv( disp_df_link[, .(ZIP, N)],
+               zip_output_file)
+    print( paste( "ZIP code parcel counts written to", zip_output_file))
   }
 }
