@@ -39,7 +39,10 @@ link_zip <- function( d,
     # extract data layer from raster, disaggregate to .1°x.1°
     if( is.null( rasterin) == T)
       stop( "Need PBL raster!")
-    pbl_layer <- rasterin
+    pbl_layer <- subset_nc_date(hpbl_brick = rasterin,
+                                varname = 'hpbl',
+                                vardate = d$Pdate[1])
+
 
     suppressWarnings(
       pbl_layer.t <- projectRaster( pbl_layer,
