@@ -15,6 +15,7 @@ hyspdisp_fac_model <- function(run_ref_tab,
                                link2zip = T,
                                prc_dir = NULL,
                                hyo_dir = NULL,
+                               zpc_dir = NULL,
                                current_dir = getwd(),
                                met_dir = file.path( getwd(), 'metfiles'),
                                binary_path = NULL,
@@ -51,13 +52,14 @@ hyspdisp_fac_model <- function(run_ref_tab,
   # Create temporary data to save output
   # Create directory to store met files if it does not exist
   if( is.null( prc_dir)){
-    prc_dir <- file.path(current_dir, paste0( 'hyspdisp_',
-                                              Sys.Date()))
+    prc_dir <- file.path(current_dir, paste0( 'hyspdisp_', Sys.Date()))
   }
   if( is.null( hyo_dir)){
     hyo_dir <- file.path( prc_dir, 'partial_trimmed_parcel_locs')
   }
-  zpc_dir <- file.path( prc_dir, 'zip_counts')
+  if( is.null( zpc_dir)){
+    zpc_dir <- file.path( prc_dir, 'zip_counts')
+  }
   dir.create(prc_dir, showWarnings = FALSE)
   dir.create(hyo_dir, showWarnings = FALSE)
   dir.create(zpc_dir, showWarnings = FALSE)
@@ -90,7 +92,10 @@ hyspdisp_fac_model <- function(run_ref_tab,
     print( "Defining HYSPLIT model parameters and running the model.")
 
     ## Create run directory
-    run_dir <- file.path(prc_dir, unit$ID)
+    run_dir <- file.path( prc_dir,
+                          paste0( unit$ID, '_',
+                                  paste( date_ref,
+                                         collapse = '_')))
 
     ## preemptively remove if run_dir already exists, then create
     unlink(run_dir, recursive = T)
@@ -160,7 +165,8 @@ hyspdisp_fac_model <- function(run_ref_tab,
     ## Erase run files
     if( !keep.hysplit.files)
       unlink(run_dir, recursive = TRUE)
-  }
+  } else
+    partial_trimmed_parcel_locs <- fread( output_file)
 
   if( link2zip == T){
     print( "Linking parcel locations to ZIP codes. This could take a few minutes...")
@@ -182,10 +188,10 @@ hyspdisp_fac_model <- function(run_ref_tab,
     ## link to zips
     disp_df_link <- link_zip( disp_df_trim,
                               gridfirst = T,
-                              rasterin = hpbl_raster)[, .(ZIP, N)]
+                              rasterin = hpbl_raster)
 
     # Write to output csv file
-    write.csv( disp_df_link,
+    write.csv( disp_df_link[, .(ZIP, N)],
                zip_output_file)
     print( paste( "ZIP code parcel counts written to", zip_output_file))
 
