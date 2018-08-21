@@ -130,8 +130,8 @@ hyspdisp_fac_model <- function(run_ref_tab,
         start_hour = date_ref$start_hour,
         direction = "forward",
         met_type = "reanalysis",
-        met_dir = met_dir,
-        binary_path = bin_path
+        met_dir = met_dir#,
+  #      binary_path = bin_path
       ) %>%
       run_model(npart = npart)
 
