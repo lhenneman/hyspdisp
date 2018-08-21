@@ -18,6 +18,7 @@ hyspdisp_fac_model_parallel <- function(x,
                                         met_dir = file.path( getwd(), 'metfiles'),
                                         bin_path = NULL,
                                         keep.hysplit.files = FALSE){
+  print(hyo_dir)
 
 
   ## define species parameters
