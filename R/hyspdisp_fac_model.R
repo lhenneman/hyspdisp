@@ -86,9 +86,6 @@ hyspdisp_fac_model <- function(run_ref_tab,
   `%ni%` <- Negate(`%in%`)
   if( output_file %ni% tmp.exists | overwrite == T){
     print( "Defining HYSPLIT model parameters and running the model.")
-    # Check if hpbl_raster is defined
-    if( !hasArg( hpbl_raster))
-      stop( "Please define a hpbl_raster file")
 
 
     ## Create run directory
@@ -170,6 +167,10 @@ hyspdisp_fac_model <- function(run_ref_tab,
 
   if( link2zip == T){
     print( "Linking parcel locations to ZIP codes. This could take a few minutes...")
+
+    # Check if hpbl_raster is defined
+    if( !hasArg( hpbl_raster))
+      stop( "Please define a hpbl_raster file")
 
     # Check if crosswalk is defined
     if( !hasArg( zcta2))
