@@ -18,7 +18,7 @@ hyspdisp_fac_model <- function(run_ref_tab,
                                zpc_dir = NULL,
                                current_dir = getwd(),
                                met_dir = file.path( getwd(), 'metfiles'),
-                               binary_path = NULL,
+                               bin_path = NULL,
                                keep.hysplit.files = FALSE){
 
   # check if all required model setup parameters are entered
@@ -134,7 +134,7 @@ hyspdisp_fac_model <- function(run_ref_tab,
         direction = "forward",
         met_type = "reanalysis",
         met_dir = met_dir,
-        binary_path = binary_path
+        binary_path = bin_path
       ) %>%
       run_model(npart = npart)
 

@@ -26,7 +26,7 @@ hyspdisp_fac_model(run_ref_tab,
                    hyo_dir = NULL,
                    current_dir = getwd(),
                    met_dir = file.path( getwd(), 'metfiles'),
-                   binary_path = NULL,
+                   bin_path = NULL,
                    keep.hysplit.files = FALSE)
 
 hyspdisp_fac_model_parallel(x,
@@ -43,7 +43,7 @@ hyspdisp_fac_model_parallel(x,
                             hyo_dir = NULL,
                             current_dir = getwd(),
                             met_dir = file.path( getwd(), 'metfiles'),
-                            binary_path = NULL,
+                            bin_path = NULL,
                             keep.hysplit.files = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -84,7 +84,7 @@ run directory. Defaults to \code{NULL}. If \code{NULL}, creates a directory in t
   \item{hyo_dir}{
 HYSPLIT output directory. Defaults to \code{NULL}. If \code{NULL}, creates a directory in the \code{prc_dir} named \code{partial_trimmed_parcel_locs}.
 }
-  \item{binary_path}{
+  \item{bin_path}{
 path to HYSPLIT binaries. Defaults to \code{NULL}. If \code{NULL}, uses the \code{SplitR} default install location.
 }
   \item{zcta2}{

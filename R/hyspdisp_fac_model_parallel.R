@@ -16,7 +16,7 @@ hyspdisp_fac_model_parallel <- function(x,
                                         zpc_dir = NULL,
                                         current_dir = getwd(),
                                         met_dir = file.path( getwd(), 'metfiles'),
-                                        binary_path = NULL,
+                                        bin_path = NULL,
                                         keep.hysplit.files = FALSE){
 
 
@@ -109,7 +109,7 @@ hyspdisp_fac_model_parallel <- function(x,
         direction = "forward",
         met_type = "reanalysis",
         met_dir = met_dir,
-        binary_path = binary_path) %>%
+        binary_path = bin_path) %>%
       run_model(npart = npart)
 
     ## Extract output from the dispersion model
