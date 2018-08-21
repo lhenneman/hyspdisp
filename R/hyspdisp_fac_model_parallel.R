@@ -108,8 +108,9 @@ hyspdisp_fac_model_parallel <- function(x,
         start_hour = date_ref$start_hour,
         direction = "forward",
         met_type = "reanalysis",
-        met_dir = met_dir,
-        binary_path = bin_path) %>%
+        met_dir = met_dir#,
+    #    binary_path = bin_path
+        ) %>%
       run_model(npart = npart)
 
     ## Extract output from the dispersion model
