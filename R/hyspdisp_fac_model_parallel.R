@@ -36,6 +36,7 @@ hyspdisp_fac_model_parallel <- function(x,
     zpc_dir <- file.path( prc_dir, 'zip_counts')
   }
   dir.create(prc_dir, recursive = TRUE)
+  print(hyo_dir)
   dir.create(hyo_dir, recursive = TRUE)
   dir.create(zpc_dir, recursive = TRUE)
   dir.create(met_dir, recursive = TRUE)
