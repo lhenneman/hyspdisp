@@ -35,10 +35,10 @@ hyspdisp_fac_model_parallel <- function(x,
   if( is.null( zpc_dir)){
     zpc_dir <- file.path( prc_dir, 'zip_counts')
   }
-  dir.create(prc_dir, showWarnings = FALSE)
-  dir.create(hyo_dir, showWarnings = FALSE)
-  dir.create(zpc_dir, showWarnings = FALSE)
-  dir.create(met_dir, showWarnings = FALSE)
+  dir.create(prc_dir, showWarnings = FALSE, recursive = TRUE)
+  dir.create(hyo_dir, showWarnings = FALSE, recursive = TRUE)
+  dir.create(zpc_dir, showWarnings = FALSE, recursive = TRUE)
+  dir.create(met_dir, showWarnings = FALSE, recursive = TRUE)
 
   ## select date and hour
   date_ref <- run_ref_tab[x,]
