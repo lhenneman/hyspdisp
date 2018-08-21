@@ -57,6 +57,7 @@ hyspdisp_fac_model <- function(run_ref_tab,
     zpc_dir <- file.path( prc_dir, 'zip_counts')
   }
   dir.create(prc_dir, showWarnings = FALSE, recursive = TRUE)
+  print(hyo_dir)
   dir.create(hyo_dir, showWarnings = FALSE, recursive = TRUE)
   dir.create(zpc_dir, showWarnings = FALSE, recursive = TRUE)
   dir.create(met_dir, showWarnings = FALSE, recursive = TRUE)
