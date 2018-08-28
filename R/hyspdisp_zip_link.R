@@ -61,6 +61,12 @@ hyspdisp_zip_link <- function( start_date,
     d <- d[d$Pdate %in% as( vec_dates, "character") &
              hour > 1,]
 
+    #Check if extent matches the hpbl raster
+    d_xmin <- min( d$lon)
+    e_xmin <- extent( hpbl_raster)[1]
+    if( d_xmin < e_xmin)
+      hpbl_raster <- rotate( hpbl_raster)
+
     ## Trim PBL's
     d_trim <- trim_pbl( d,
                         rasterin = hpbl_raster)
