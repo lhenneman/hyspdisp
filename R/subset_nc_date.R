@@ -10,7 +10,7 @@
 
 subset_nc_date <- function( hpbl_file = NULL,
                             hpbl_brick = NULL,
-                            varname,
+                            varname = NULL,
                             vardate){
 
   if( (is.null( hpbl_file)  & is.null( hpbl_brick)) |
