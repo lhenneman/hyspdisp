@@ -1,5 +1,6 @@
-hyspdisp_zip_link <- function( start_date,
-                               end_date,
+hyspdisp_zip_link <- function( month_YYYYMM = NULL,
+                               start_date = NULL,
+                               end_date = NULL,
                                duration_run_hours,
                                hpbl_raster,
                                zcta2,
@@ -9,8 +10,11 @@ hyspdisp_zip_link <- function( start_date,
                                current_dir = getwd(),
                                prc_dir = NULL,
                                zpc_dir = NULL,
-                               hyo_dir = NULL){
+                               hyo_dir = NULL,
+                               hyo_dir2 = NULL){
 
+  if( (is.null( start_date) | is.null( end_date)) & is.null( month_YYYYMM))
+    stop( "Define either a start_date and an end_date OR a month_YYYYMM")
   if( is.null( prc_dir)){
     prc_dir <- file.path(current_dir, paste0( 'hyspdisp_', Sys.Date()))
   }
@@ -23,6 +27,16 @@ hyspdisp_zip_link <- function( start_date,
   dir.create(prc_dir, showWarnings = FALSE)
   dir.create(hyo_dir, showWarnings = FALSE)
   dir.create(zpc_dir, showWarnings = FALSE)
+
+  ## create start_date and end_date if month_YYYYMM is provided
+  if( is.null( start_date) | is.null( end_date)){
+    start_date <- as.Date( paste( substr( month_YYYYMM, 1, 4),
+                                  substr( month_YYYYMM, 5, 6),
+                                  '01', sep = '-'))
+    end_date <- as.Date( paste( substr( month_YYYYMM, 1, 4),
+                                as( substr( month_YYYYMM, 5, 6), 'numeric') + 1,
+                                '01', sep = '-')) - 1
+  }
 
   ## name the eventual output file
   zip_output_file <- file.path( zpc_dir,
@@ -48,6 +62,12 @@ hyspdisp_zip_link <- function( start_date,
     files.read <- list.files(path = hyo_dir,
                              pattern = paste(vec_filedates, collapse = '|'),
                              full.names = T)
+
+    ## if hyo_dir2 povided, check for files there too
+    if( !is.null( hyo_dir2))
+      files.read <- append( files.read, list.files(path = hyo_dir2,
+                                                   pattern = paste(vec_filedates, collapse = '|'),
+                                                   full.names = T))
 
     ## read in the files
     l <- lapply(files.read,
