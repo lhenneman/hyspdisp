@@ -48,9 +48,13 @@ link_zip <- function( d,
       pbl_layer.t <- projectRaster( pbl_layer,
                                     crs = CRS( proj4string( spdf)))
     )
-    pbl_layer.d <- disaggregate( pbl_layer.t,
-                                 fact = 10)
 
+    # aim for a resolution of 12 km
+    pbl_resolution <- res( pbl_layer.t)
+    x_fact <- pbl_resolution[1] / 12000
+    y_fact <- pbl_resolution[2] / 12000
+    pbl_layer.d <- disaggregate( pbl_layer.t,
+                                 fact = c( x_fact, y_fact))
 
     # count number of particles in each cell,
     # find original raster cells, divide number by pbl
