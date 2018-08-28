@@ -30,6 +30,8 @@ trim_pbl <- function(Min,
   xy <- M[,.(lon, lat)]
   spdf <- SpatialPointsDataFrame(coords = xy, data = M,
                                  proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+
+  # identify cells for each parcel location
   spdf$rastercell <- cellFromXY(rasterin, spdf)
   spdf.dt <- na.omit( data.table(spdf@data))
 
