@@ -163,8 +163,14 @@ hyspdisp_fac_model_parallel <- function(x,
     if( !hasArg( crosswalk))
       stop( "Please define a crosswalk file to link zips")
 
-
+    #Read output file from hysplit
     disp_df <- fread(output_file)
+
+    #Check if extent matches the hpbl raster
+    d_xmin <- min( disp_df$lon)
+    e_xmin <- extent( hpbl_raster)[1]
+    if( d_xmin < e_xmin)
+      hpbl_raster <- rotate( hpbl_raster)
 
     ## trim values above PBL
     disp_df_trim <- trim_pbl(disp_df,
