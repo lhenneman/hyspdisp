@@ -109,7 +109,7 @@ hyspdisp_zip_link <- function( month_YYYYMM = NULL,
 
     print( paste( Sys.time(), "Linked ZIPs  and saved to", zip_output_file))
   } else {
-    print( paste("File", file.out, "already exists! Use overwrite = TRUE to over write"))
+    print( paste("File", zip_output_file, "already exists! Use overwrite = TRUE to over write"))
     out <- fread( zip_output_file)
   }
 
