@@ -40,19 +40,18 @@ link_zip <- function( d,
     if( is.null( rasterin) == T)
       stop( "Need PBL raster!")
     pbl_layer <- subset_nc_date(hpbl_brick = rasterin,
-                                varname = 'hpbl',
                                 vardate = d$Pdate[1])
 
 
-    suppressWarnings(
+ #   suppressWarnings(
       pbl_layer.t <- projectRaster( pbl_layer,
                                     crs = CRS( proj4string( spdf)))
-    )
+ #   )
 
     # aim for a resolution of 12 km
     pbl_resolution <- res( pbl_layer.t)
-    x_fact <- pbl_resolution[1] / 12000
-    y_fact <- pbl_resolution[2] / 12000
+    x_fact <- floor( pbl_resolution[1] / 12000)
+    y_fact <- floor( pbl_resolution[2] / 12000)
     pbl_layer.d <- disaggregate( pbl_layer.t,
                                  fact = c( x_fact, y_fact))
 
