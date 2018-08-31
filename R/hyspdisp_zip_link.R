@@ -33,9 +33,10 @@ hyspdisp_zip_link <- function( month_YYYYMM = NULL,
     start_date <- as.Date( paste( substr( month_YYYYMM, 1, 4),
                                   substr( month_YYYYMM, 5, 6),
                                   '01', sep = '-'))
-    end_date <- as.Date( paste( substr( month_YYYYMM, 1, 4),
-                                as( substr( month_YYYYMM, 5, 6), 'numeric') + 1,
-                                '01', sep = '-')) - 1
+
+    end_date <- seq( start_date,
+                     by = paste (1, "months"),
+                     length = 2)[2] - 1
   }
 
   ## name the eventual output file
