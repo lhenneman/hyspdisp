@@ -93,9 +93,9 @@ link_zip <- function( d,
 
     or <- data.table( rbindlist( lapply( unique( zc_groups),
                                          over_fn,
-                                         zc_trim,
-                                         zc_groups,
-                                         r3)))
+                                         zc_dt = zc_trim,
+                                         groups = zc_groups,
+                                         raster_obj = r3)))
 
 
 
