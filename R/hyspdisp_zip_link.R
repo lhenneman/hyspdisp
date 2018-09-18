@@ -51,11 +51,10 @@ hyspdisp_zip_link <- function( month_YYYYMM = NULL,
   if( !file.exists( zip_output_file) | overwrite == T){
 
     ## identify dates for hyspdisp averages and dates for files to read in
-    extra_days_in_files <- ceiling( duration_run_hours / 24)
     vec_dates <- seq.Date( as.Date( start_date),
                            as.Date( end_date),
                            by = '1 day')
-    vec_filedates <- seq.Date( from = as.Date( start_date) - 1,
+    vec_filedates <- seq.Date( from = as.Date( start_date) - ceiling( duration_run_hours / 24),
                                to = as.Date( end_date),
                                by = '1 day')
 
@@ -79,13 +78,13 @@ hyspdisp_zip_link <- function( month_YYYYMM = NULL,
     print(  paste( Sys.time(), "Files read and combined"))
 
     ## Trim dates & first hour
-    d <- d[d$Pdate %in% as( vec_dates, "character") &
+    d <- d[d$Pdate %in% as( c( vec_dates, vec_filedates), "character") &
              hour > 1,]
 
     #Check if extent matches the hpbl raster
     d_xmin <- min( d$lon)
     e_xmin <- extent( hpbl_raster)[1]
-    if( d_xmin < e_xmin)
+    if( d_xmin < e_xmin - 5)
       hpbl_raster <- rotate( hpbl_raster)
 
     ## Trim PBL's
