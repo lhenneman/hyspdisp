@@ -40,6 +40,10 @@ hyspdisp_fac_model <- function(run_ref_tab,
                                start_day = start_day,
                                duration_emiss_hours = duration_emiss_hours,
                                duration_run_hours = duration_run_hours)
+  
+  ## Check if Height parameter in unit is NA
+  if( is.na( unit$Height))
+    stop("Check to make sure your Height is defined in the unit!")
 
   ## define species parameters
   species_param <- define_species( species)
