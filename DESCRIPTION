@@ -22,3 +22,6 @@ Depends:
     sp,
     SplitR
 Suggests:
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
