@@ -1,0 +1,175 @@
+---
+title: "Running HyADS for many sources"
+author: "Lucas Henneman"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    fig_caption: yes
+vignette: >
+  %\VignetteIndexEntry{Running HyADS for many sources}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+  
+
+```{r setup, include = FALSE}
+  knitr::opts_chunk$set(
+  echo = T, 
+  results = 'hide',
+  collapse = TRUE,
+  comment = "#>"
+  )
+```
+  
+  
+  Here we provide an example workflow of how to run the HyADS model using `hyspdisp`. This vignette provides instruction on how to run the model and ensure the model runs completed. Subsequent vignettes will describe combining, manipulating, and interpreting results.
+  
+```{r }
+  library( hyspdisp,
+  quietly = T)
+```
+  
+  
+  ## Getting started - downloading important files
+  The ZIP code linkage procedure requires a ZCTA-to-ZIP code Crosswalk file. ZCTAs are not exact geographic matches to ZIP codes, and multiple groups compile and maintain Crosswalk files. One example is the Crosswalk mainted by UDS Mapper. It can be retrieved and its names changed for consistency with ```hyspdisp``` functions with the following commands:
+```{r}
+library( openxlsx)
+crosswalkin <- data.table( read.xlsx( xlsxFile = 
+                                        "https://www.udsmapper.org/docs/zip_to_zcta_2017.xlsx"))
+setnames( crosswalkin, 
+          old = "ZIP_CODE", 
+          new = "ZIP")
+```
+
+Equally important is the ZCTA shapefile. These are available from multiple locations, including the US census website: \url{http://www2.census.gov/geo/tiger/GENZ2017/shp/cb_2017_us_zcta510_500k.zip}. An alternative is to use the `tigris` r library. Download the file, unzip it, and read in the shapefile (here I've unzipped it to a directory in my Desktop). Loading the file may take a few moments.
+```{r }
+zcta_shapefile <- file.path('~', 'Desktop', 
+                            'cb_2015_us_zcta510_500k', 
+                            'cb_2015_us_zcta510_500k.shp')
+zcta <- shapefile( x = zcta_shapefile)
+```
+
+It is recommended to transform the ZCTA shapefile to a known projection to maintain consistency throughout the allocation process. Lat-lon projections are preferred, such as the [North American Albers Equal Area Conic](https://epsg.io/102008):
+```{r }
+p4s <- "+proj=aea +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m"
+zcta.trans <- spTransform( x = zcta, 
+                           CRSobj = p4s)
+```
+
+The final input file is the monthly mean boundary layer heights. For years up to and including 2012, these are available in a single file from [NOAA's Earth System Research Library](https://www.esrl.noaa.gov/psd/data/gridded/data.20thC_ReanV2.monolevel.mm.html). For years 2013 and later (and available for years 2008 and on), you may use the [NCAR/UCAR data archive](https://rda.ucar.edu/thredds/catalog/files/e/ds630.1/e5.mnth.mean.an.sfc/catalog.html). The NCAR/UCAR annual files must be downloaded one by one. Below I've included examples for how to download the two types of files.
+```{r }
+hpbl_file_NOAA <- file.path('~', 'Desktop', 
+                            './hpbl.mon.mean.nc')
+url_NOAA <- "ftp://ftp.cdc.noaa.gov/Datasets/20thC_ReanV2/Monthlies/gaussian/monolevel/hpbl.mon.mean.nc"
+if( !file.exists( hpbl_file_NOAA))
+  download.file( url = url_NOAA,
+                 destfile = hpbl_file_NOAA)
+
+hpbl_file_NCAR2012 <- file.path('~', 'Desktop', 
+                                './hpbl.mon.mean.nc_2012.grb')
+url_NCAR <- "https://rda.ucar.edu/thredds/catalog/files/e/ds630.1/e5.mnth.mean.an.sfc/2012/catalog.html?dataset=files/e/ds630.1/e5.mnth.mean.an.sfc/2012/e5.mnth.mean.an.sfc.128_159_blh.regn320sc.2012010100_2012120100.grb"
+if( !file.exists( hpbl_file_NCAR2012))
+  download.file( url = url_NCAR,
+                 destfile = hpbl_file_NCAR2012)
+
+```
+
+Both files are read in using the brick command, and rotated to match the lat-lon projection applied above. Before reading in, it is necessary to set the system time zone to UTC so that the dates are formatted correctly in the raster files.  For the NCAR boundary layer files, it is not neccesary to set the `varname` argument in the `brick` function.
+```{r }
+Sys.setenv(TZ='UTC')
+hpbl_rasterin <- rotate( brick( x = hpbl_file_NOAA, 
+                                varname = 'hpbl' ))
+```
+
+## Selecting units
+Select power plants to run. In this case, we'll use the five units in 2005 with the greatest SOx emissions. This package contains annual emissions and stack height data from EPA's Air Markets Program Data and the Energy Information Agency [CITES] for 2005, 2006, and 2012. [PLUG CHRISTINE's DATA PAPER]. [Add data for all other years?]
+
+```{r results = 'markup'}
+data( units2005)
+units2005 <- data.table( units2005)[, V1 := NULL]
+units.run <- units2005[ order( -SOx)][1:10]
+knitr::kable( units.run)
+```
+
+## Designate directories for storing intermediate 
+`hyspdisp` creates multiple file types that store information important in interpreting the results. It is recommended to define the locations beforehand so that you:
+- can access the files later
+- ensure there is enough storage space available
+
+Good to define met directory or else SplitR will download meteorology files each time you run. hyspdisp will create the directories if they do not already exist.
+
+```{r results = 'markup'}
+## proc_dir defines where runs happen and output is saved
+## up_dir is where input data is saved (upper file structure)
+run_dir <- '~/Desktop/run_hyspdisp'
+hysraw_dir <- '~/Desktop/run_hyspdisp/output_hysplit'
+hyslink_dir <- '~/Desktop/run_hyspdisp/output_ziplinks'
+meteo_dir <- '~/Desktop/meteo'
+```
+
+
+## Define time periods to be run
+To define all emission events, we can use the helper function `define_inputtimes`. This takes as inputs a starting and ending day, and outputs a table of value whose rows will later correspond to inputs into the main `hyspdisp` worker functions. This command will list all otimes four times a day in January 2005.
+```{r results = 'markup'}
+## combine dates and hours
+input_refs <- define_inputtimes( startday = '2005-01-01',
+                                 endday = '2005-01-31')
+knitr::kable( head( input_refs, 10))
+```
+
+## Run the HyADS model for one iteration
+To define all emission events, we can use the helper function `define_inputtimes`. This takes as inputs a starting and ending day, and outputs a table of value whose rows will later correspond to inputs into the main `hyspdisp` worker functions. This will run for the first day and link the results to ZIP codes
+```{r results = 'markup'}
+library(parallel)
+
+l <- mclapply( seq_len( nrow( input_refs)),
+               hyspdisp_fac_model_parallel,
+               run_ref_tab = input_refs,
+               unit = units2005[1],
+               species = "so2",
+               npart = 100,
+               zcta2 = zcta.trans,
+               crosswalk = crosswalkin,
+               hpbl_raster = hpbl_rasterin,
+               prc_dir = run_dir,
+               hyo_dir = hysraw_dir,
+               zpc_dir = hyslink_dir,
+               met_dir = meteo_dir,
+               link2zip = T)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+## Figures
+
+The figure sizes have been customised so that you can easily put two images side-by-side. 
+
+```{r fig.cap = "Figure 1", fig.show = 'hold', out.width = '33%'}
+plot(1:10)
+
+plot(10:1)
+
+```
+
+
+## More Examples
+
+You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
+
+```{r, echo=FALSE, results='asis'}
+knitr::kable(head(mtcars, 10))
+```
+
+Also a quote using `>`:
+
+> "He who gives up [code] safety for [code] speed deserves neither."
+([via](https://twitter.com/hadleywickham/status/504368538874703872))
