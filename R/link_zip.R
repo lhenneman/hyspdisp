@@ -86,16 +86,25 @@ link_zip <- function( d,
                          zc_dt,
                          groups,
                          raster_obj) {
-      over( zc_dt[ groups %in% group,],
-            raster_obj,
-            fn = mean)
-    }
+       
+      dt <- data.table( over( zc_dt[ groups %in% group,],
+                          raster_obj,
+                          fn = mean))
+  
+      # if "over" returned no matches, need a vector of NA's
+      if( nrow( dt) == 1 & is.na( dt[1])){
+        dt <- data.table( X = as.numeric( rep( NA, length( zc_dt[ groups %in% group,]))))
+        setnames( dt, "X", names( raster_obj))
+      }
+    
+      return( dt)
+   }
 
-    or <- data.table( rbindlist( lapply( unique( zc_groups),
-                                         over_fn,
-                                         zc_dt = zc_trim,
-                                         groups = zc_groups,
-                                         raster_obj = r3)))
+    or <- rbindlist( lapply( unique( zc_groups),
+                                     over_fn,
+                                     zc_dt = zc_trim,
+                                     groups = zc_groups,
+                                     raster_obj = r3))
 
 
 

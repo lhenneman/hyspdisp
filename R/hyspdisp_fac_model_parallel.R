@@ -24,6 +24,9 @@ hyspdisp_fac_model_parallel <- function(x,
   print( paste( "current_dir is:", current_dir))
   print( paste( "met_dir is:", met_dir))
 
+  ## Check if Height parameter in unit is NA
+  if( is.na( unit$Height))
+    stop("Check to make sure your Height is defined in the unit!")
 
   ## define species parameters
   species_param <- define_species( species)
