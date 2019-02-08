@@ -9,29 +9,30 @@ vignette: >
   %\VignetteIndexEntry{Running HyADS for many sources}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
----
+  ---
   
-
+  
 ```{r setup, include = FALSE}
-  knitr::opts_chunk$set(
-  echo = T, 
-  results = 'hide',
-  collapse = TRUE,
-  comment = "#>"
-  )
+knitr::opts_chunk$set(
+echo = T, 
+results = 'hide',
+collapse = TRUE,
+comment = "#>"
+)
 ```
-  
-  
-  Here we provide an example workflow of how to run the HyADS model using `hyspdisp`. This vignette provides instruction on how to run the model and ensure the model runs completed. Subsequent vignettes will describe combining, manipulating, and interpreting results.
-  
+
+
+Here we provide an example workflow of how to run the HyADS model using `hyspdisp`. This vignette provides instruction on how to run the model and ensure the model runs completed. Subsequent vignettes will describe combining, manipulating, and interpreting results.
+
 ```{r }
-  library( hyspdisp,
-  quietly = T)
+devtools::install_github("lhenneman/hyspdisp@dev2")
+library( hyspdisp,
+         quietly = T)
 ```
-  
-  
-  ## Getting started - downloading important files
-  The ZIP code linkage procedure requires a ZCTA-to-ZIP code Crosswalk file. ZCTAs are not exact geographic matches to ZIP codes, and multiple groups compile and maintain Crosswalk files. One example is the Crosswalk mainted by UDS Mapper. It can be retrieved and its names changed for consistency with ```hyspdisp``` functions with the following commands:
+
+
+## Getting started - downloading important files
+The ZIP code linkage procedure requires a ZCTA-to-ZIP code Crosswalk file. ZCTAs are not exact geographic matches to ZIP codes, and multiple groups compile and maintain Crosswalk files. One example is the Crosswalk mainted by UDS Mapper. It can be retrieved and its names changed for consistency with ```hyspdisp``` functions with the following commands:
 ```{r}
 library( openxlsx)
 crosswalkin <- data.table( read.xlsx( xlsxFile = 
@@ -43,9 +44,9 @@ setnames( crosswalkin,
 
 Equally important is the ZCTA shapefile. These are available from multiple locations, including the US census website: \url{http://www2.census.gov/geo/tiger/GENZ2017/shp/cb_2017_us_zcta510_500k.zip}. An alternative is to use the `tigris` r library. Download the file, unzip it, and read in the shapefile (here I've unzipped it to a directory in my Desktop). Loading the file may take a few moments.
 ```{r }
-zcta_shapefile <- file.path('~', 'Desktop', 
-                            'cb_2015_us_zcta510_500k', 
-                            'cb_2015_us_zcta510_500k.shp')
+zcta_shapefile <- file.path('~', 'Desktop', 'hyads_test',
+                            'cb_2017_us_zcta510_500k', 
+                            'cb_2017_us_zcta510_500k.shp')
 zcta <- shapefile( x = zcta_shapefile)
 ```
 
@@ -101,10 +102,10 @@ Good to define met directory or else SplitR will download meteorology files each
 ```{r results = 'markup'}
 ## proc_dir defines where runs happen and output is saved
 ## up_dir is where input data is saved (upper file structure)
-run_dir <- '~/Desktop/run_hyspdisp'
+proc_dir <- '~/Desktop/run_hyspdisp'
 hysraw_dir <- '~/Desktop/run_hyspdisp/output_hysplit'
-hyslink_dir <- '~/Desktop/run_hyspdisp/output_ziplinks'
-meteo_dir <- '~/Desktop/meteo'
+ziplink_dir <- '~/Desktop/run_hyspdisp/output_ziplinks'
+meteo_dir <- '~/Desktop/run_hyspdisp/meteo'
 ```
 
 
@@ -112,31 +113,43 @@ meteo_dir <- '~/Desktop/meteo'
 To define all emission events, we can use the helper function `define_inputtimes`. This takes as inputs a starting and ending day, and outputs a table of value whose rows will later correspond to inputs into the main `hyspdisp` worker functions. This command will list all otimes four times a day in January 2005.
 ```{r results = 'markup'}
 ## combine dates and hours
-input_refs <- define_inputtimes( startday = '2005-01-01',
-                                 endday = '2005-01-31')
+input_refs <- define_inputs( units = units.run,
+                             startday = '2005-01-01',
+                             endday = '2005-01-31')
 knitr::kable( head( input_refs, 10))
 ```
 
 ## Run the HyADS model for one iteration
-To define all emission events, we can use the helper function `define_inputtimes`. This takes as inputs a starting and ending day, and outputs a table of value whose rows will later correspond to inputs into the main `hyspdisp` worker functions. This will run for the first day and link the results to ZIP codes
+To define all emission events, we can use the helper function `define_inputtimes`. This takes as inputs a starting and ending day, and outputs a table of value whose rows will later correspond to inputs into the main `hyspdisp` worker functions. This will run for the first day and link the results to ZIP codes (only links each individual plume to ZIP codes). With `link2zip=T` you can link dispersion patterns from individual emissions events to ZIP codes; this, however, somewhat violates the spirit of HyADS, since the large number of emissions events is used as a check on some other uncertainties introduced by the simplifying assumptions. Here it's run for the first five rows of the `input_refs` table. The results will be saved in the `hysraw_dir`.
 ```{r results = 'markup'}
 library(parallel)
 
-l <- mclapply( seq_len( nrow( input_refs)),
-               hyspdisp_fac_model_parallel,
-               run_ref_tab = input_refs,
-               unit = units2005[1],
-               species = "so2",
-               npart = 100,
-               zcta2 = zcta.trans,
-               crosswalk = crosswalkin,
-               hpbl_raster = hpbl_rasterin,
-               prc_dir = run_dir,
-               hyo_dir = hysraw_dir,
-               zpc_dir = hyslink_dir,
-               met_dir = meteo_dir,
-               link2zip = T)
+l <- mclapply( 1:5,
+              hyspdisp_fac_model_parallel,
+              run_ref_tab = input_refs,
+              zcta2 = zcta.trans,
+              crosswalk = crosswalkin,
+              hpbl_raster = hpbl_rasterin,
+              prc_dir = proc_dir,
+              hyo_dir = hysraw_dir,
+              zpc_dir = ziplink_dir,
+              met_dir = meteo_dir,
+              link2zip = F)
 ```
+
+yearmons <- paste0( runyear, 1:12)
+linked_zips <- lapply( yearmons,
+hyspdisp_zip_link,
+duration_run_hours = run_hours,
+hpbl_raster = pbl_rasterin,
+zcta2 = zcta2,
+crosswalk = cw,
+unit = unit,
+zpc_dir = ziplink_dir,
+overwrite = T,
+hyo_dir = hyout_dir,
+hyo_dir2 = hyout_dir2)
+
 
 
 
