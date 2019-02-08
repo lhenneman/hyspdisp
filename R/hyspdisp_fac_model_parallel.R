@@ -3,11 +3,10 @@
 
 hyspdisp_fac_model_parallel <- function(x,
                                         run_ref_tab,
-                                        unit,
-                                        species,
                                         zcta2,
                                         crosswalk,
                                         hpbl_raster,
+                                        species = 'so2',
                                         npart = 100,
                                         overwrite = F,
                                         link2zip = T,
@@ -24,9 +23,11 @@ hyspdisp_fac_model_parallel <- function(x,
   print( paste( "current_dir is:", current_dir))
   print( paste( "met_dir is:", met_dir))
 
+  run_ref_tab.use <- run_ref_tab[x]
+
   ## Check if Height parameter in unit is NA
-  if( is.na( unit$Height))
-    stop("Check to make sure your Height is defined in the unit!")
+  if( is.na( run_ref_tab.use$Height))
+    stop("Check to make sure your Height is defined in the run_ref_tab!")
 
   ## define species parameters
   species_param <- define_species( species)
@@ -44,42 +45,44 @@ hyspdisp_fac_model_parallel <- function(x,
     zpc_dir <- file.path( prc_dir, 'zip_counts')
   }
   dir.create(prc_dir, recursive = TRUE)
-  print(hyo_dir)
   dir.create(hyo_dir, recursive = TRUE)
   dir.create(zpc_dir, recursive = TRUE)
   dir.create(met_dir, recursive = TRUE)
 
   ## select date and hour
-  date_ref <- run_ref_tab[x,]
-  print(paste0('Date: ', format(date_ref$start_day, format = "%Y-%m-%d"), ', Hour: ', date_ref$start_hour))
+  print(paste0('Date: ', format( run_ref_tab.use$start_day,
+                                 format = "%Y-%m-%d"), ', Hour: ',
+               run_ref_tab.use$start_hour))
 
   ## Define output file names
-  output_file <- file.path( hyo_dir,
-                            paste0("hyspdisp_",
-                                   unit$ID, "_",
-                                   date_ref$start_day, "_",
-                                   formatC(date_ref$start_hour, width = 2, format = "d", flag = "0"),
-                                   ".csv"))
+  output_file <- path.expand( file.path( hyo_dir,
+                                         paste0("hyspdisp_",
+                                                run_ref_tab.use$ID, "_",
+                                                run_ref_tab.use$start_day, "_",
+                                                formatC(run_ref_tab.use$start_hour, width = 2, format = "d", flag = "0"),
+                                                ".csv")))
   zip_output_file <- file.path( zpc_dir,
                                 paste0("ziplinks_",
-                                       unit$ID, "_",
-                                       date_ref$start_day, "_",
-                                       formatC(date_ref$start_hour, width = 2, format = "d", flag = "0"),
+                                       run_ref_tab.use$ID, "_",
+                                       run_ref_tab.use$start_day, "_",
+                                       formatC(run_ref_tab.use$start_hour, width = 2, format = "d", flag = "0"),
                                        ".csv"))
 
   ## Check if output parcel locations file already exists
   tmp.exists <- list.files( hyo_dir,
                             full.names = T)
 
-  `%ni%` <- Negate(`%in%`)
-  print(output_file %ni% tmp.exists | overwrite == T)
+  ## Initial output data.table
+  out1 <- c()
+  out2 <- c()
+
   if( output_file %ni% tmp.exists | overwrite == T){
     print( "Defining HYSPLIT model parameters and running the model.")
 
     ## Create run directory
     run_dir <- file.path( prc_dir,
-                          paste0( unit$ID, '_',
-                                  paste( date_ref,
+                          paste0( run_ref_tab.use$ID, '_',
+                                  paste( run_ref_tab.use[, .(ID, start_day, start_hour)],
                                          collapse = '_')))
 
     ## preemptively remove if run_dir already exists, then create
@@ -95,9 +98,9 @@ hyspdisp_fac_model_parallel <- function(x,
       create_disp_model() %>%
       add_emissions(
         rate = 1,
-        duration = date_ref$duration_emiss_hours,
-        start_day = as( date_ref$start_day,'character'),
-        start_hour = date_ref$start_hour) %>%
+        duration = run_ref_tab.use$duration_emiss_hours,
+        start_day = as( run_ref_tab.use$start_day,'character'),
+        start_hour = run_ref_tab.use$start_hour) %>%
       add_species(
         name = species_param$name,
         pdiam = species_param$pdiam, # okay
@@ -109,17 +112,17 @@ hyspdisp_fac_model_parallel <- function(x,
         range = c(0.5, 0.5),
         division = c(0.1, 0.1)) %>%
       add_params(
-        lat = unit$Latitude,
-        lon = unit$Longitude,
-        height = unit$Height,
-        duration = date_ref$duration_run_hours,
-        start_day = as( date_ref$start_day,'character'),
-        start_hour = date_ref$start_hour,
+        lat = run_ref_tab.use$Latitude,
+        lon = run_ref_tab.use$Longitude,
+        height = run_ref_tab.use$Height,
+        duration = run_ref_tab.use$duration_run_hours,
+        start_day = as( run_ref_tab.use$start_day,'character'),
+        start_hour = run_ref_tab.use$start_hour,
         direction = "forward",
         met_type = "reanalysis",
         met_dir = met_dir#,
-    #    binary_path = bin_path
-        ) %>%
+        #    binary_path = bin_path
+      ) %>%
       run_model(npart = npart)
 
     ## Extract output from the dispersion model
@@ -130,7 +133,7 @@ hyspdisp_fac_model_parallel <- function(x,
     disp_df <- trim_zero(dispersion_df)
 
     ## Add parcel date and time
-    disp_df$Pdate <- date_ref$start_day + disp_df$hour / 24
+    disp_df$Pdate <- run_ref_tab.use$start_day + disp_df$hour / 24
 
     # trims particles that are above the global max boundary value
     disp_df_trim <- disp_df[height <= 2665]
@@ -144,7 +147,9 @@ hyspdisp_fac_model_parallel <- function(x,
     partial_trimmed_parcel_locs <- disp_df_trim[,save.vars, with = F]
     write.csv( partial_trimmed_parcel_locs,
                output_file)
-    print( paste( "Partial trimmed parcel locations (below height 0 and the highest PBL height) written to", output_file))
+    out1 <- paste( "Partial trimmed parcel locations (below height 0
+                   and the highest PBL height) written to",
+                   output_file)
 
     ## Erase run files
     if( !keep.hysplit.files)
@@ -180,12 +185,18 @@ hyspdisp_fac_model_parallel <- function(x,
                              rasterin = hpbl_raster)
     ## link to zips
     disp_df_link <- link_zip( disp_df_trim,
+                              zc = zcta2,
+                              cw = crosswalk,
                               gridfirst = T,
                               rasterin = hpbl_raster)
 
     # Write to output csv file
     write.csv( disp_df_link[, .(ZIP, N)],
                zip_output_file)
-    print( paste( "ZIP code parcel counts written to", zip_output_file))
+    out2 <- paste( "ZIP code parcel counts written to",
+                   zip_output_file)
   }
+
+  out <- data.table( out = c( out1, out2))
+  return( out)
 }
