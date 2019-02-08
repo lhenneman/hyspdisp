@@ -22,6 +22,7 @@ Depends:
     sp,
     SplitR
 Suggests:
+    rgeos,
     knitr,
     rmarkdown
 VignetteBuilder: knitr
