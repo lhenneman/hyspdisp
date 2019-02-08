@@ -9,7 +9,7 @@ hyspdisp_fac_model_parallel <- function(x,
                                         species = 'so2',
                                         npart = 100,
                                         overwrite = F,
-                                        link2zip = T,
+                                        link2zip = F,
                                         prc_dir = NULL,
                                         hyo_dir = NULL,
                                         zpc_dir = NULL,
@@ -17,14 +17,6 @@ hyspdisp_fac_model_parallel <- function(x,
                                         met_dir = file.path( getwd(), 'metfiles'),
                                         bin_path = NULL,
                                         keep.hysplit.files = FALSE){
-  print( paste( "hyo_dir is:", hyo_dir))
-  print( paste( "prc_dir is:", prc_dir))
-  print( paste( "zpc_dir is:", zpc_dir))
-  print( paste( "current_dir is:", current_dir))
-  print( paste( "met_dir is:", met_dir))
-
-  run_ref_tab.use <- run_ref_tab[x]
-
   ## Check if Height parameter in unit is NA
   if( is.na( run_ref_tab.use$Height))
     stop("Check to make sure your Height is defined in the run_ref_tab!")
@@ -35,21 +27,23 @@ hyspdisp_fac_model_parallel <- function(x,
   # Create process directory in current directory if not defined
   # Create temporary data to save output
   # Create directory to store met files if it does not exist
-  if( is.null( prc_dir)){
+  if( is.null( prc_dir))
     prc_dir <- file.path(current_dir, paste0( 'hyspdisp_', Sys.Date()))
-  }
-  if( is.null( hyo_dir)){
+  if( is.null( hyo_dir))
     hyo_dir <- file.path( prc_dir, 'partial_trimmed_parcel_locs')
-  }
-  if( is.null( zpc_dir)){
+  if( is.null( zpc_dir))
     zpc_dir <- file.path( prc_dir, 'zip_counts')
-  }
+
   dir.create(prc_dir, recursive = TRUE)
-  dir.create(hyo_dir, recursive = TRUE)
-  dir.create(zpc_dir, recursive = TRUE)
   dir.create(met_dir, recursive = TRUE)
+  dir.create(hyo_dir, recursive = TRUE)
+
+  if( link2zip)
+    dir.create(zpc_dir, recursive = TRUE)
 
   ## select date and hour
+  ## Subset table to use appropriate row
+  run_ref_tab.use <- run_ref_tab[x]
   print(paste0('Date: ', format( run_ref_tab.use$start_day,
                                  format = "%Y-%m-%d"), ', Hour: ',
                run_ref_tab.use$start_hour))
@@ -73,8 +67,10 @@ hyspdisp_fac_model_parallel <- function(x,
                             full.names = T)
 
   ## Initial output data.table
-  out1 <- c()
-  out2 <- c()
+  out1 <- paste( "Partial trimmed parcel locations (below height 0 and the highest PBL height) already exist at",
+                 output_file)
+  out2 <- paste( "ZIP code parcel counts not called for or already exist at",
+                 zip_output_file)
 
   if( output_file %ni% tmp.exists | overwrite == T){
     print( "Defining HYSPLIT model parameters and running the model.")
@@ -147,8 +143,7 @@ hyspdisp_fac_model_parallel <- function(x,
     partial_trimmed_parcel_locs <- disp_df_trim[,save.vars, with = F]
     write.csv( partial_trimmed_parcel_locs,
                output_file)
-    out1 <- paste( "Partial trimmed parcel locations (below height 0
-                   and the highest PBL height) written to",
+    out1 <- paste( "Partial trimmed parcel locations (below height 0 and the highest PBL height) written to",
                    output_file)
 
     ## Erase run files
