@@ -1,11 +1,11 @@
 hyspdisp_zip_link <- function( month_YYYYMM = NULL,
                                start_date = NULL,
                                end_date = NULL,
+                               unit,
                                duration_run_hours = 240,
                                hpbl_raster,
                                zcta2,
                                crosswalk,
-                               unit,
                                overwrite = F,
                                current_dir = getwd(),
                                prc_dir = NULL,
@@ -15,7 +15,10 @@ hyspdisp_zip_link <- function( month_YYYYMM = NULL,
 
   if( (is.null( start_date) | is.null( end_date)) & is.null( month_YYYYMM))
     stop( "Define either a start_date and an end_date OR a month_YYYYMM")
-  if( is.null( prc_dir)){
+  if( dim( unit)[1] > 1)
+    stop( "Please supply a single unit (not multiple)")
+
+    if( is.null( prc_dir)){
     prc_dir <- file.path(current_dir, paste0( 'hyspdisp_', Sys.Date()))
   }
   if( is.null( hyo_dir)){
@@ -75,6 +78,8 @@ hyspdisp_zip_link <- function( month_YYYYMM = NULL,
 
     ## Combine all parcels into single data table
     d <- rbindlist(l)
+    if( length( d) == 0)
+      return( paste( "No files available to link in", month_YYYYMM))
     print(  paste( Sys.time(), "Files read and combined"))
 
     ## Trim dates & first hour
