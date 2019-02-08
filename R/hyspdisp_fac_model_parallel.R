@@ -17,6 +17,13 @@ hyspdisp_fac_model_parallel <- function(x,
                                         met_dir = file.path( getwd(), 'metfiles'),
                                         bin_path = NULL,
                                         keep.hysplit.files = FALSE){
+  ## select date and hour
+  ## Subset table to use appropriate row
+  run_ref_tab.use <- run_ref_tab[x]
+  print(paste0('Date: ', format( run_ref_tab.use$start_day,
+                                 format = "%Y-%m-%d"), ', Hour: ',
+               run_ref_tab.use$start_hour))
+
   ## Check if Height parameter in unit is NA
   if( is.na( run_ref_tab.use$Height))
     stop("Check to make sure your Height is defined in the run_ref_tab!")
@@ -40,13 +47,6 @@ hyspdisp_fac_model_parallel <- function(x,
 
   if( link2zip)
     dir.create(zpc_dir, recursive = TRUE)
-
-  ## select date and hour
-  ## Subset table to use appropriate row
-  run_ref_tab.use <- run_ref_tab[x]
-  print(paste0('Date: ', format( run_ref_tab.use$start_day,
-                                 format = "%Y-%m-%d"), ', Hour: ',
-               run_ref_tab.use$start_hour))
 
   ## Define output file names
   output_file <- path.expand( file.path( hyo_dir,
