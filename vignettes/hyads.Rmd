@@ -120,12 +120,12 @@ knitr::kable( head( input_refs, 10))
 ```
 
 ## Run the HyADS model for one iteration
-To define all emission events, we can use the helper function `define_inputtimes`. This takes as inputs a starting and ending day, and outputs a table of value whose rows will later correspond to inputs into the main `hyspdisp` worker functions. This will run for the first day and link the results to ZIP codes (only links each individual plume to ZIP codes). With `link2zip=T` you can link dispersion patterns from individual emissions events to ZIP codes; this, however, somewhat violates the spirit of HyADS, since the large number of emissions events is used as a check on some other uncertainties introduced by the simplifying assumptions. Here it's run for the first five rows of the `input_refs` table. The results will be saved in the `hysraw_dir`.
+To define all emission events, we can use the helper function `define_inputtimes`. This takes as inputs a starting and ending day, and outputs a table of value whose rows will later correspond to inputs into the main `hyspdisp` worker functions. This will run for the first day and link the results to ZIP codes (only links each individual plume to ZIP codes). With `link2zip=T` you can link dispersion patterns from individual emissions events to ZIP codes; this, however, somewhat violates the spirit of HyADS, since the large number of emissions events is used as a check on some other uncertainties introduced by the simplifying assumptions. Here it's run for the first five rows of the `input_refs` table. The results will be saved in the `hysraw_dir`. `mc.cores` is an option in the mcapply function that controls the number of cores should be used.
 ```{r results = 'markup'}
 library(parallel)
 
-l <- mclapply( 1:5,
-              hyspdisp_fac_model_parallel,
+l <- mclapply( X = 1:10,
+              FUN = hyspdisp_fac_model_parallel,
               run_ref_tab = input_refs,
               zcta2 = zcta.trans,
               crosswalk = crosswalkin,
@@ -134,21 +134,10 @@ l <- mclapply( 1:5,
               hyo_dir = hysraw_dir,
               zpc_dir = ziplink_dir,
               met_dir = meteo_dir,
-              link2zip = F)
-```
+              mc.cores = 2)
 
-yearmons <- paste0( runyear, 1:12)
-linked_zips <- lapply( yearmons,
-hyspdisp_zip_link,
-duration_run_hours = run_hours,
-hpbl_raster = pbl_rasterin,
-zcta2 = zcta2,
-crosswalk = cw,
-unit = unit,
-zpc_dir = ziplink_dir,
-overwrite = T,
-hyo_dir = hyout_dir,
-hyo_dir2 = hyout_dir2)
+knitr::kable( head( l, 10))
+```
 
 
 
