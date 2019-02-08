@@ -132,14 +132,24 @@ l <- mclapply( X = 1:10,
               hpbl_raster = hpbl_rasterin,
               prc_dir = proc_dir,
               hyo_dir = hysraw_dir,
-              zpc_dir = ziplink_dir,
               met_dir = meteo_dir,
-              mc.cores = 2)
+              mc.cores = 4)
 
 knitr::kable( head( l, 10))
 ```
 
 
+
+yearmons <- paste0( 2005, 1:12)
+linked_zips <- lapply( yearmons,
+                       hyspdisp_zip_link,
+                       hpbl_raster = hpbl_rasterin,
+                       zcta2 = zcta.trans,
+                       crosswalk = crosswalkin,
+                       unit = units.run[1],
+                       prc_dir = proc_dir,
+                       zpc_dir = ziplink_dir,
+                       hyo_dir = hysraw_dir)
 
 
 
