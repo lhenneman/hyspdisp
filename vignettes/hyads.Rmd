@@ -12,7 +12,7 @@ vignette: >
   ---
   
   
-```{r setup, include = FALSE}
+  ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
 echo = T, 
 results = 'hide',
@@ -91,6 +91,8 @@ units2005 <- data.table( units2005)[, V1 := NULL]
 units.run <- units2005[ order( -SOx)][1:10]
 knitr::kable( units.run)
 ```
+## Selecting units
+Rake average heights for missing values
 
 ## Designate directories for storing intermediate 
 `hyspdisp` creates multiple file types that store information important in interpreting the results. It is recommended to define the locations beforehand so that you:
@@ -125,34 +127,42 @@ To define all emission events, we can use the helper function `define_inputtimes
 library(parallel)
 
 l <- mclapply( X = 1:10,
-              FUN = hyspdisp_fac_model_parallel,
-              run_ref_tab = input_refs,
-              zcta2 = zcta.trans,
-              crosswalk = crosswalkin,
-              hpbl_raster = hpbl_rasterin,
-              prc_dir = proc_dir,
-              hyo_dir = hysraw_dir,
-              met_dir = meteo_dir,
-              mc.cores = 4)
+               FUN = hyspdisp_fac_model_parallel,
+               run_ref_tab = input_refs,
+               zcta2 = zcta.trans,
+               crosswalk = crosswalkin,
+               hpbl_raster = hpbl_rasterin,
+               prc_dir = proc_dir,
+               hyo_dir = hysraw_dir,
+               met_dir = meteo_dir,
+               mc.cores = 4)
 
 knitr::kable( head( l, 10))
 ```
 
 
+Most current implementations, instead of linking dispersion patterns from individual ZIP codes, link the patterns by month. With the `hysdisp_zip_link` function, users can link all air parcels to ZIP codes by month for an individual unit. Here, we define the variables `yearmons` with combinations of years and months. `hysdisp_zip_link` reads in all the relevant files (i.e., those that correspond to the provided `month_YYYYMM`) produced by the `hyspdisp_fac_model_parallel` function and saved to the `hyo_dir`, then links them to ZIP codes. The result is data.table of ZIP codes and relative contributions `N`, and an identical `.csv` file is saved to the `zpc_dir`. `N` is not weighted by the `unit`'s emissions. `hyspdisp_zip_link` is parallelizable using `mclapply` or similar.
+```{r results = 'markup'}
 
 yearmons <- paste0( 2005, 1:12)
-linked_zips <- lapply( yearmons,
-                       hyspdisp_zip_link,
-                       hpbl_raster = hpbl_rasterin,
-                       zcta2 = zcta.trans,
-                       crosswalk = crosswalkin,
-                       unit = units.run[1],
-                       prc_dir = proc_dir,
-                       zpc_dir = ziplink_dir,
-                       hyo_dir = hysraw_dir)
+linked_zips <- hyspdisp_zip_link( month_YYYYMM = yearmons[1],
+                                  unit = units.run[1],
+                                  hpbl_raster = hpbl_rasterin,
+                                  zcta2 = zcta.trans,
+                                  crosswalk = crosswalkin,
+                                  prc_dir = proc_dir,
+                                  zpc_dir = ziplink_dir,
+                                  hyo_dir = hysraw_dir)
+```
 
 
+```{r results = 'markup'}
 
+yearmons <- paste0( 2005, 1:12)
+combine_monthly_ziplinks <- function( month_YYYYMMs,
+                                      zpc_dir = ziplink_dir,
+                                      rda_dir = NULL)
+```
 
 
 
