@@ -5,10 +5,11 @@ calc_zip_exposure <- function(year.E,
                               year.H,
                               pollutant = 'SO2..tons.',
                               units.mo,
-                              rda_dir = 'loaded',
+                              rda_file = 'loaded',
                               exp_dir = NULL,
                               source.agg = c('total', 'facility', 'unit'),
-                              time.agg = c('year', 'month')){
+                              time.agg = c('year', 'month'),
+                              return.monthly.data = F){
 
   #define defaults if none provided
   if( length( source.agg) > 1){
@@ -28,7 +29,13 @@ calc_zip_exposure <- function(year.E,
 
   #define defaults if none provided
   if( rda_file != 'loaded')
-    load( rda_file)
+    load( rda_file, envir = environment())
+
+  map.name1 <- paste0( "MAP", 1, ".", year.H)
+  if( rda_file == 'loaded'
+      & map.name1 %ni% ls( envir = globalenv())
+      & map.name1 %ni% ls())
+    stop( paste0("Data is loaded, but does not include ", map.name1, ', which is required for now.'))
 
   # Create directory to store output files if it does not exist
   if( is.null( exp_dir)){
@@ -39,6 +46,9 @@ calc_zip_exposure <- function(year.E,
 
   #initiate exposure data.table
   ZIPexposures <-  data.table()
+
+  #initiate list of monthly files
+  monthly.filelist <- c()
 
   #Iterate over months of the year
   print(paste("Calculating ZIP code exposures for HYSPLIT year ",year.H," and emissions year ",year.E,"!",sep=''))
@@ -53,13 +63,17 @@ calc_zip_exposure <- function(year.E,
 
     #get HYPSPLIT mappings
     map.name <- paste0( "MAP", i, ".", year.H)
-    if( map.name %ni% ls( envir = globalenv())){
+    if( map.name %ni% ls( envir = globalenv())
+        & map.name %ni% ls( )){
       warning( paste( map.name, 'not loaded in environment. If you want it (and subsequent months) linked, either load RData file before or specify rda_file'))
       break
     }
-
-    month_mapping <- eval( parse( text = map.name),
-                           envir = globalenv())[ZIP != 'ZIP']
+    if( map.name %in% ls()) {
+      month_mapping <- eval( parse( text = map.name))[ZIP != 'ZIP']
+    } else{
+      month_mapping <- eval( parse( text = map.name),
+                             envir = globalenv())[ZIP != 'ZIP']
+    }
 
     month_mapping[is.na(month_mapping)] <- 0
     names( month_mapping) <- gsub('_|-|\\*', '.', names( month_mapping))
@@ -130,21 +144,26 @@ calc_zip_exposure <- function(year.E,
       write.csv(ZIPexposures[ZIP != '   NA'],
                 file = file.mo)
 
-      #re-initiate ZIP exposure data.table
+      #re-initiate ZIP exposure data.table, add monthly file to list
+      monthly.filelist[i] <- file.mo
       ZIPexposures <-  data.frame()
     }
 
   }
 
-  #convert 3-digit zip code to 5, add emissions and hysplit years
-  ZIPexposures$ZIP <- formatC( as.integer( ZIPexposures$ZIP), width = 5, flag = "0", format = "d")
-  ZIPexposures$year.E <- year.E
-  ZIPexposures$year.H <- year.H
 
   if( time.agg == 'year'){
+    #convert 3-digit zip code to 5, add emissions and hysplit years
+    ZIPexposures$ZIP <- formatC( as.integer( ZIPexposures$ZIP), width = 5, flag = "0", format = "d")
+    ZIPexposures$year.E <- year.E
+    ZIPexposures$year.H <- year.H
     return( ZIPexposures[ZIP != '   NA'])
   } else {
-    return( "Monthly files written to exp_dir.")
+    if( return.monthly.data){
+      return( rbindlist( lapply( monthly.filelist,
+                                 fread)))
+    } else
+      return( monthly.filelist)
   }
 }
 
