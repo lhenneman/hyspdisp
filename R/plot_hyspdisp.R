@@ -11,68 +11,63 @@
 #' @param cw ZIP - ZCTA crosswalk file
 #' @return This function returns a data table of zip codes with associated number of particles.
 
-plot_hyspdisp <- function(hyspdisp_out,
-                      zc,
-                      cw,
-                      outpath = getwd(),
-                      plot.title = NULL,
-                      metric = 'N',
-                      legend_lims = c(0, 1e5),
-                      show.legend = NULL,
-                      filename = NULL,
-                      facility.loc = NULL,
-                      legend.text.angle = 0){
-
-  zips <- st_read(zc)
-  setnames( zips, 'ZCTA5CE10', 'ZCTA')
-  cw$ZCTA <- formatC( cw$ZCTA,
-                      width = 5,
-                      format = "d",
-                      flag = "0") # to merge on zcta ID
-  zips <- merge( zips, cw, by = "ZCTA", all = F, allow.cartesian = TRUE) # all.x = TRUE, all.y = FALSE, allow.cartesian = TRUE)
-  zips$ZIP <- formatC( zips$ZIP,
-                       width = 5,
-                       format = "d",
-                       flag = "0") # to merge on zcta ID
-
-  zip_dataset_sf <- data.table( merge( zips, hyspdisp_out, by = c('ZIP'), all.y = T))
+plot_hyspdisp <- function(hyspdisp_out.sf,
+                          metric,
+                          plot.title = NULL,
+                          legend.lims = NULL,
+                          legend.title = NULL,
+                          facility.loc = data.table( x = as.numeric(NA),
+                                                     y = as.numeric(NA)),
+                          legend.text.angle = 0){
 
 
   # color.option <- 'viridis'
-  if (is.null( plot.title))
-    plot.title <- paste('HYSPdisp')
   if (is.null( filename))
     filename <- paste('map_hyspdisp.png', sep = '')
 
-  plot_sf_merg <- zip_dataset_sf
+  plot_sf_merg <- copy( hyspdisp_out.sf)
   setnames(plot_sf_merg, metric, 'metric')
+
+  if( is.null( legend.lims))
+    legend.lims <- c( 0, quantile(plot_sf_merg$metric, .95))
 
   colorscale <-
     scale_color_viridis(
+      name = legend.title,
       discrete = F,
       option = 'magma',
-      limits = legend_lims,
+      limits = legend.lims,
       oob = squish,
       direction = 1,
-      na.value = "white"
+      na.value = NA,
+      guide = guide_colorbar( title.position = 'top',
+                              title.hjust = 0.5,
+                              title.vjust = 0 ,
+                              label.vjust = 1)
     )
   fillscale <-
     scale_fill_viridis(
+      name = legend.title,
       discrete = F,
       option = 'magma',
-      limits = legend_lims,
+      limits = legend.lims,
       oob = squish,
       direction = 1,
-      na.value="white"
-    )
+      na.value = NA,
+      guide = guide_colorbar( title.position = 'top',
+                              title.hjust = 0.5,
+                              title.vjust = 0 ,
+                              label.vjust = 1)
 
+    )
 
   gg <- ggplot(data = plot_sf_merg,
                aes(fill  = metric,
                    color = metric)) +
     theme_bw() +
     labs(title = plot.title) +
-    geom_sf(size = 0.01) +
+    geom_sf( aes(geometry = geometry),
+             size = 0.01) +
     geom_polygon(
       data = map_data("state"),
       aes(x = long, y = lat, group = group),
@@ -80,13 +75,13 @@ plot_hyspdisp <- function(hyspdisp_out,
       colour = "grey50",
       size = .25
     ) +
-    geom_point(
-      x = facility.loc[1],
-      y = facility.loc[2],
-      shape = 1,
-      colour = "forestgreen",
-      # fill = "darkred",
-      size = .75
+    geom_point( data = facility.loc,
+                aes( x = x,
+                     y = y),
+                shape = 1,
+                colour = "forestgreen",
+                inherit.aes = F,
+                size = 2
     ) +
     scale_shape_discrete(solid = T) +
     coord_sf(
@@ -97,27 +92,20 @@ plot_hyspdisp <- function(hyspdisp_out,
     colorscale +
     fillscale +
     theme(
-      plot.title = element_text(size = 14), #element_text(size = 16, hjust = 0.5),
+      plot.title = if( !is.null(plot.title)) {
+        element_text(size = 16, hjust = 0.5)
+      } else
+        element_blank(),
       axis.title = element_blank(),
       axis.text = element_blank(),
       axis.title.x = element_blank(),
       axis.title.y = element_blank(),
-      legend.title = element_blank(),
-      legend.position = if( !is.null(show.legend)) {
-        show.legend
-      } else
-        c(.20, .15),
+      legend.position = c(.20, .15),
       legend.text = element_text(size = 8, angle = legend.text.angle),
       legend.background = element_rect(fill = 'transparent'),
       legend.key.size = unit(.05, 'npc'),
       legend.direction = 'horizontal'
     )
 
-  invisible(ggsave(
-    file.path(outpath, filename),
-    gg,
-    width = 13.5,
-    height = 7.79,
-    unit = 'cm'
-  ))
+  return( gg)
 }
