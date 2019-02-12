@@ -7,7 +7,7 @@ combine_monthly_ziplinks <- function( month_YYYYMMs,
     rda_dir <- file.path( getwd(), 'rdata_hyspdisp')
     print( paste( 'No rda_dir provided. Defaulting to', rda_dir))
   }
-  dir.create(rda_dir, recursive = TRUE)
+  dir.create(rda_dir, recursive = TRUE, showWarnings = F)
 
 
   if( length( unique( substr( month_YYYYMMs, 1, 4))) > 1)
@@ -60,7 +60,7 @@ combine_monthly_ziplinks <- function( month_YYYYMMs,
   }
 
   rda.filename <- file.path( rda_dir, paste0('hyads_unwgted_', year.h, '.RData'))
-  save( names.map,
+  save( list = names.map,
         file = rda.filename)
 
   return( paste("Monthly RData file written to", rda.filename))
