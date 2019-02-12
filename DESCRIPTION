@@ -22,7 +22,11 @@ Depends:
     sp,
     SplitR
 Suggests:
-    rgeos,
+    ggplot2,
     knitr,
-    rmarkdown
+    rgeos,
+    rmarkdown,
+    scales,
+    sf,
+    viridis
 VignetteBuilder: knitr
