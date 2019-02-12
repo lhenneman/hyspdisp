@@ -21,10 +21,12 @@ combine_monthly_ziplinks <- function( month_YYYYMMs,
     month.h <- formatC( month.m, width = 2, format = "d", flag = "0")
     pattern <- paste0( 'ziplinks.*', year.h,'-', month.h)
 
-    print( paste( 'Reading and merging month', month.h, 'in year', year.h))
     files.month <- list.files( path = zpc_dir,
                                pattern = pattern,
                                full.names = T)
+   if( length(files.month) == 0)
+     next
+    print( paste( 'Reading and merging month', month.h, 'in year', year.h))
 
     unitnames <- gsub( paste0( '.*ziplinks_|_', year.h, '-', month.h, '.*csv$'),
                        '', files.month)
@@ -63,7 +65,8 @@ combine_monthly_ziplinks <- function( month_YYYYMMs,
   save( list = names.map,
         file = rda.filename)
 
-  return( paste("Monthly RData file written to", rda.filename))
+  print( paste("Monthly RData file written to", rda.filename))
+  return( mget(names.map))
 }
 
 
