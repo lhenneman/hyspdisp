@@ -141,12 +141,13 @@ knitr::kable( head( l, 10))
 ```
 
 
-Most current implementations, instead of linking dispersion patterns from individual ZIP codes, link the patterns by month. With the `hysdisp_zip_link` function, users can link all air parcels to ZIP codes by month for an individual unit. Here, we define the variables `yearmons` with combinations of years and months. `hysdisp_zip_link` reads in all the relevant files (i.e., those that correspond to the provided `month_YYYYMM`) produced by the `hyspdisp_fac_model_parallel` function and saved to the `hyo_dir`, then links them to ZIP codes. The result is data.table of ZIP codes and relative contributions `N`, and an identical `.csv` file is saved to the `zpc_dir`. `N` is not weighted by the `unit`'s emissions. `hyspdisp_zip_link` is parallelizable using `mclapply` or similar.
+Most current implementations, instead of linking dispersion patterns from individual ZIP codes, link the patterns by month. With the `hysdisp_zip_link` function, users can link all air parcels to ZIP codes by month for an individual unit. Here, we define the variables `yearmons` with combinations of years and months. `hysdisp_zip_link` reads in all the relevant files (i.e., those that correspond to the provided `month_YYYYMM` and `unit`) produced by the `hyspdisp_fac_model_parallel` function and saved to the `hyo_dir`, then links them to ZIP codes. The result is data.table of ZIP codes and relative contributions `N`, and an identical `.csv` file is saved to the `zpc_dir`. `N` is not weighted by the `unit`'s emissions. `hyspdisp_zip_link` is parallelizable using `mclapply` or similar, and is run for a single unit (we define the `link_unit` as the first unit in `unit.run`.)
 ```{r results = 'markup'}
+link_unit <- units.run[1]
 
 yearmons <- paste0( 2005, 1:12)
 linked_zips <- hyspdisp_zip_link( month_YYYYMM = yearmons[1],
-                                  unit = units.run[1],
+                                  unit = link_unit,
                                   hpbl_raster = hpbl_rasterin,
                                   zcta2 = zcta.trans,
                                   crosswalk = crosswalkin,
@@ -155,6 +156,28 @@ linked_zips <- hyspdisp_zip_link( month_YYYYMM = yearmons[1],
                                   hyo_dir = hysraw_dir)
 ```
 
+At this point, it makes sense to take a look at the results to see which ZIP codes are impacted by emissions from the facility whose impacts we just modeled. To acheive this, we can use the `plot_hyspdisp` function, which takes as input a data.table (or data.frame) linked to simple features ZIP code data. We can use the `st_read` function from the `sf` package to read in the same ZCTA shapefile we used to link the HYSPLIT output to ZIP codes. Next, we merge the `sf` ZIP code object to both the crosswalk file and the `linked_zips` object created above, then feed the merged dataset to the `plot_hyspdisp` function, which returns a ggplot object.
+
+```{r results = 'markup'}
+zips.sf <- st_read(zcta_shapefile)
+setnames( zips.sf, 'ZCTA5CE10', 'ZCTA')
+
+zips_crosswalk.sf <- merge( zips.sf, 
+                            crosswalkin, 
+                            by = "ZCTA", all = F, allow.cartesian = TRUE) 
+
+zip_dataset_sf <- data.table( merge( zips_crosswalk.sf, 
+                                     linked_zips, 
+                                     by = c('ZIP'), all.y = T))
+
+plot_hyspdisp(hyspdisp_out.sf = zip_dataset_sf,
+              metric = 'N',
+              plot.title = paste('Jan. 2005 HyADS raw exposure, uID:', link_unit[, ID]),
+              legend.title = 'HyADS raw exposure',
+              facility.loc = data.table( x = link_unit[, Longitude],
+                                         y = link_unit[, Latitude]))
+
+```
 
 ```{r results = 'markup'}
 
