@@ -2,12 +2,10 @@ combine_monthly_ziplinks <- function( month_YYYYMMs,
                                       zpc_dir,
                                       rda_dir = NULL){
 
-  # Create process directory in current directory if not defined
-  # Create temporary data to save output
-  # Create directory to store met files if it does not exist
+  # Create directory to store RData files if it does not exist
   if( is.null( rda_dir)){
     rda_dir <- file.path( getwd(), 'rdata_hyspdisp')
-    print( paste( 'No rda_dir provided. Defaulting to', current_dir))
+    print( paste( 'No rda_dir provided. Defaulting to', rda_dir))
   }
   dir.create(rda_dir, recursive = TRUE)
 
