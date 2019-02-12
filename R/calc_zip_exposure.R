@@ -10,6 +10,7 @@ calc_zip_exposure <- function(year.E,
                               source.agg = c('total', 'facility', 'unit'),
                               time.agg = c('year', 'month'),
                               return.monthly.data = F){
+  `%ni%` <- Negate(`%in%`)
 
   #define defaults if none provided
   if( length( source.agg) > 1){
