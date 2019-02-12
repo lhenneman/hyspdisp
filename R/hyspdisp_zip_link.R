@@ -18,7 +18,7 @@ hyspdisp_zip_link <- function( month_YYYYMM = NULL,
   if( dim( unit)[1] > 1)
     stop( "Please supply a single unit (not multiple)")
 
-    if( is.null( prc_dir)){
+  if( is.null( prc_dir)){
     prc_dir <- file.path(current_dir, paste0( 'hyspdisp_', Sys.Date()))
   }
   if( is.null( hyo_dir)){
@@ -107,6 +107,10 @@ hyspdisp_zip_link <- function( month_YYYYMM = NULL,
     print(  paste( Sys.time(), "ZIPs linked"))
 
     out <- disp_df_link[, .(ZIP, N)]
+    out$ZIP <- formatC( out$ZIP,
+                        width = 5,
+                        format = "d",
+                        flag = "0")
 
     ## write to file
     write.csv( out,
