@@ -1,1 +1,1 @@
-`%ni%` <- Negate(`%in%`)
+'%ni%' <- function(x,y)!('%in%'(x,y))
