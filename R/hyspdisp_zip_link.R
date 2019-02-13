@@ -120,6 +120,10 @@ hyspdisp_zip_link <- function( month_YYYYMM = NULL,
   } else {
     print( paste("File", zip_output_file, "already exists! Use overwrite = TRUE to over write"))
     out <- fread( zip_output_file)
+    out$ZIP <- formatC( out$ZIP,
+                        width = 5,
+                        format = "d",
+                        flag = "0")
   }
 
   return( out)
