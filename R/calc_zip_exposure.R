@@ -52,10 +52,11 @@ calc_zip_exposure <- function(year.E,
   monthly.filelist <- c()
 
   #Iterate over months of the year
-  print(paste("Calculating ZIP code exposures for HYSPLIT year ",year.H," and emissions year ",year.E,"!",sep=''))
+  print(paste("Calculating ZIP code exposures for HYSPLIT year ",
+              year.H, " and emissions year ", year.E, "!", sep=''))
   for (i in 1:12){
 
-    PP.units_monthly <- subset(units.mo, Month == i & Year == year.E)
+    PP.units_monthly <- subset(units.mo, month == i & year == year.E)
     setnames(PP.units_monthly, pollutant, 'pollutant')
 
     #Aggregate unit power plant emissions to unit level
@@ -154,6 +155,10 @@ calc_zip_exposure <- function(year.E,
 
 
   if( time.agg == 'year'){
+    setnames( ZIPexposures,
+              c( 'Exposure'),
+              c( 'hyspdisp'))
+
     #convert 3-digit zip code to 5, add emissions and hysplit years
     ZIPexposures$ZIP <- formatC( as.integer( ZIPexposures$ZIP), width = 5, flag = "0", format = "d")
     ZIPexposures$year.E <- year.E
@@ -161,8 +166,10 @@ calc_zip_exposure <- function(year.E,
     return( ZIPexposures[ZIP != '   NA'])
   } else {
     if( return.monthly.data){
-      return( rbindlist( lapply( monthly.filelist,
-                                 fread)))
+      out <- rbindlist( lapply( monthly.filelist,
+                                 fread))[, V1 := NULL]
+      out[, ZIP := formatC( as.integer( out$ZIP), width = 5, flag = "0", format = "d")]
+
     } else
       return( monthly.filelist)
   }
