@@ -113,11 +113,13 @@ hyspdisp_zip_link <- function( month_YYYYMM = NULL,
                         format = "d",
                         flag = "0")
 
-    ## write to file
-    write.csv( out,
-               zip_output_file)
+    if( nrow( out) != 0){
+      ## write to file
+      write.csv( out,
+                 zip_output_file)
 
-    print( paste( Sys.time(), "Linked ZIPs  and saved to", zip_output_file))
+      print( paste( Sys.time(), "Linked ZIPs  and saved to", zip_output_file))
+    }
   } else {
     print( paste("File", zip_output_file, "already exists! Use overwrite = TRUE to over write"))
     out <- fread( zip_output_file)
