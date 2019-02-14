@@ -62,14 +62,15 @@ hyspdisp_zip_link <- function( month_YYYYMM = NULL,
                                by = '1 day')
 
     ## list the files
+    pattern.file <- paste0( unit$ID, '_(', paste(vec_filedates, collapse = '|'), ')')
     files.read <- list.files(path = hyo_dir,
-                             pattern = paste(vec_filedates, collapse = '|'),
+                             pattern = pattern.file,
                              full.names = T)
 
     ## if hyo_dir2 povided, check for files there too
     if( !is.null( hyo_dir2))
       files.read <- append( files.read, list.files(path = hyo_dir2,
-                                                   pattern = paste(vec_filedates, collapse = '|'),
+                                                   pattern = pattern.file,
                                                    full.names = T))
 
     ## read in the files
