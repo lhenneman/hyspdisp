@@ -67,8 +67,8 @@ calc_zip_exposure <- function(year.E,
     map.name <- paste0( "MAP", i, ".", year.H)
     if( map.name %ni% ls( envir = globalenv())
         & map.name %ni% ls( )){
-      warning( paste( map.name, 'not loaded in environment. If you want it (and subsequent months) linked, either load RData file before or specify rda_file'))
-      break
+      warning( paste( map.name, 'not loaded in environment. If you want it linked, either load RData file before or specify rda_file'))
+      next
     }
     if( map.name %in% ls()) {
       month_mapping <- eval( parse( text = map.name))[ZIP != 'ZIP']
@@ -89,9 +89,7 @@ calc_zip_exposure <- function(year.E,
       month_mapping_long[,`:=`( TrajPercent = as.double( TrajPercent))]
 
     #This is what I want - pollutant-weighted emissions trajectories
-    setkey( month_mapping_long, "uID")
-    setkey( PP_monthly, "uID")
-    PP.linkage <- month_mapping_long[PP_monthly]
+    PP.linkage <- merge( month_mapping_long, PP_monthly, by = 'uID', all.x = T)
 
     #  clean house
     rm( list = c('month_mapping_long', 'PP_monthly', 'month_mapping'))
@@ -137,27 +135,29 @@ calc_zip_exposure <- function(year.E,
 
       setnames( ZIPexposures,
                 c( 'Exposure'),
-                c( 'hyspdisp'))
+                c( 'hyads'))
 
+
+      # write to file, add monthly file to list if not empty data.table
       file.mo <- file.path( exp_dir,
                             paste0( 'ZIPexposures_byunit_',
                                     paste0( year.E, '_', formatC( i, width = 2, flag = '0')),
                                     '.csv'))
-      write.csv(ZIPexposures[ZIP != '   NA'],
-                file = file.mo)
-
-      #re-initiate ZIP exposure data.table, add monthly file to list
-      monthly.filelist[i] <- file.mo
+      if( nrow( ZIPexposures[ZIP != '   NA']) != 0){
+        write.csv(ZIPexposures[ZIP != '   NA'],
+                  file = file.mo)
+        monthly.filelist[i] <- file.mo
+      }
+      #re-initiate ZIP exposure data.table
       ZIPexposures <-  data.frame()
     }
 
   }
 
-
   if( time.agg == 'year'){
     setnames( ZIPexposures,
               c( 'Exposure'),
-              c( 'hyspdisp'))
+              c( 'hyads'))
 
     #convert 3-digit zip code to 5, add emissions and hysplit years
     ZIPexposures$ZIP <- formatC( as.integer( ZIPexposures$ZIP), width = 5, flag = "0", format = "d")
@@ -166,10 +166,11 @@ calc_zip_exposure <- function(year.E,
     return( ZIPexposures[ZIP != '   NA'])
   } else {
     if( return.monthly.data){
-      out <- rbindlist( lapply( monthly.filelist,
-                                 fread))[, V1 := NULL]
-      out[, ZIP := formatC( as.integer( out$ZIP), width = 5, flag = "0", format = "d")]
-
+      out <- rbindlist( lapply( na.omit( monthly.filelist),
+                                fread))[, V1 := NULL]
+      out[,  `:=` ( ZIP = formatC( as.integer( out$ZIP), width = 5, flag = "0", format = "d"),
+                    hyads = as( hyads, 'numeric'))]
+      return( out[ZIP != '   NA'])
     } else
       return( monthly.filelist)
   }
