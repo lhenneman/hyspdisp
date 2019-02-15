@@ -1,19 +1,27 @@
 rankfacs_by_popwgt_location <- function( link.files = NULL,
                                          link.dt = NULL,
                                          census.dt,
-                                         census.pop.name,
                                          rank.by = c( 'hyads'),
                                          zip.value = '*',
                                          state.value = '*',
-                                         city.value = '*'){
+                                         city.value = '*',
+                                         census.pop.name,
+                                         census.state.name = 'STATE',
+                                         census.city.name = 'PO_NAME'){
 
   # make sure either link.files or link.dt edist
-  if( (is.null(link.files) & is.null(link.dt))  | (!is.null(link.files) & !is.null(link.dt)) )
+  if( (is.null(link.files) & is.null(link.dt)) | (!is.null(link.files) & !is.null(link.dt)) )
     stop( "Please provide EITHER link.files OR link.dt")
+
+  # make sure year column is in both data.tables
+  if( ('year' %ni% names( link.dt)) | ('year' %ni% names( census.dt)) )
+    stop( "link.dt and census.dt should both include a column named 'year'.")
 
   ## Change name of census population variable
   census.dt.use <- copy( census.dt)
-  setnames( census.dt.use, census.pop.name, 'TOTPOP_CY')
+  setnames( census.dt.use,
+            c( census.pop.name, census.state.name, census.city.name),
+            c( 'TOTPOP_CY', 'STATE', 'CITY'))
 
   # read in HyADS link file and ampd file
   if( !is.null( link.files)){
@@ -33,8 +41,8 @@ rankfacs_by_popwgt_location <- function( link.files = NULL,
   city.search  <- paste0( city.value,  collapse = '|')
 
   link.dt.trim <- link.dt[ Reduce( intersect, list( grep( zip.search, ZIP),
-                                                    grep( state.search, State.zip),
-                                                    grep( city.search, City.zip)))]
+                                                    grep( state.search, STATE),
+                                                    grep( city.search, CITY)))]
 
   ## Weight metric by popultion
   names.py <- paste0( rank.by, '.py')
