@@ -195,6 +195,8 @@ The `hyspdisp_fac_model_parallel` function runs HYSPLIT for each emissions event
 
 Here it's run for a sample of twenty (`run_sample`) rows of the `input_refs` table. The results will be saved in the `hysraw_dir`. `mc.cores` is an option in the mcapply function that controls the number of cores should be used. The output describes where the files are saved, or the reasons they were not run.
 
+**If you get an error running HYSPLIT, it is likely because the meteorology files did not download correctly. Check your `meteo_dir` to ensure all files are present and at least 100MB in size.**
+
 ```{r hyspdisp_fac}
 library(parallel)
 run_sample <- round(seq( 1, dim( input_refs)[1], length.out = 20))
