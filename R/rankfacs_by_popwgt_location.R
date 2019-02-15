@@ -1,33 +1,31 @@
-rankfacs_by_popwgt_location <- function( link.ampd.files = NULL,
-                                         link.dt,
+rankfacs_by_popwgt_location <- function( link.files = NULL,
+                                         link.dt = NULL,
                                          census.dt,
-                                         cw,
-                                         metrics = c( 'hyads'),
+                                         census.pop.name,
+                                         rank.by = c( 'hyads'),
                                          zip.value = '*',
                                          state.value = '*',
                                          city.value = '*'){
 
+  # make sure either link.files or link.dt edist
+  if( (is.null(link.files) & is.null(link.dt))  | (!is.null(link.files) & !is.null(link.dt)) )
+    stop( "Please provide EITHER link.files OR link.dt")
+
+  ## Change name of census population variable
+  census.dt.use <- copy( census.dt)
+  setnames( census.dt.use, census.pop.name, 'TOTPOP_CY')
+
   # read in HyADS link file and ampd file
-  if( !is.null( link.ampd.files) & !is.null( link.ampd.files)){
-    ziplinks_hyads <- fread(link.ampd.files[['hyads.file']])[, V1 := NULL]
-    ziplinks_ampd  <- fread(link.ampd.files[['ampd.file']])[, V1 := NULL]
+  if( !is.null( link.files)){
+    link.dt <- fread(link.files)[, V1 := NULL]
 
-    ziplinks_hyads[, `:=` (ZIP  = formatC( ZIP, width = 5, format = "d", flag = "0"),
-                           uID  = gsub( '_|-|\\*', '.', uID),
-                           year = as.integer( gsub( '_.*$', '', yearmonth)))]
-    ziplinks_ampd[,  `:=` (ZIP  = formatC( ZIP, width = 5, format = "d", flag = "0"),
-                           uID  = gsub( '_|-|\\*', '.', uID),
-                           year = as.integer( gsub( '_.*$', '', year_month)))]
-
-    link.dt <- merge( ziplinks_hyads, ziplinks_ampd,
-                      by = c( 'ZIP', 'uID', 'year'),
-                      all = T)
-
+    link.dt[, `:=` (ZIP  = formatC( ZIP, width = 5, format = "d", flag = "0"),
+                    uID  = gsub( '_|-|\\*', '.', uID),
+                    year = as.integer( gsub( '_.*$', '', yearmonth)))]
   }
 
   ## Merge ZIP code and census info with link.dt
-  link.dt <- merge( link.dt, cw, by = 'ZIP')
-  link.dt <- merge( link.dt, census.dt, by = c( 'ZIP', 'year'))
+  link.dt <- merge( link.dt, census.dt.use, by = c( 'ZIP', 'year'))
 
   ## limit data table to subset.value in subset.feature
   zip.search   <- paste0( zip.value,   collapse = '|')
@@ -39,17 +37,17 @@ rankfacs_by_popwgt_location <- function( link.ampd.files = NULL,
                                                     grep( city.search, City.zip)))]
 
   ## Weight metric by popultion
-  names.py <- paste0( metrics, '.py')
-  link.dt.trim[, (names.py) := lapply(metrics, function(x) { TOTPOP_CY * get(x)})]
+  names.py <- paste0( rank.by, '.py')
+  link.dt.trim[, (names.py) := lapply(rank.by, function(x) { TOTPOP_CY * get(x)})]
 
-  ## Sum pop-weighted metrics by uID
-  names.py.sum <- paste0( metrics, '.py.sum')
+  ## Sum pop-weighted rank.by by uID
+  names.py.sum <- paste0( rank.by, '.py.sum')
   uID.pw <- link.dt.trim[, lapply(names.py, function(x) { sum( get( x))}),
                          by = c("uID", "year")]
   setnames(uID.pw, paste0( 'V', 1:length( names.py.sum)), names.py.sum)
 
   ## Rank facilities by metric in each year
-  names.py.rank <- paste0( metrics, '.rank')
+  names.py.rank <- paste0( rank.by, '.rank')
   uID.pw[, (names.py.rank) := lapply(names.py.sum, function(x) { frankv( get(x), order = -1)}),
          by = year]
 
