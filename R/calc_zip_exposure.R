@@ -71,10 +71,10 @@ calc_zip_exposure <- function(year.E,
       next
     }
     if( map.name %in% ls()) {
-      month_mapping <- eval( parse( text = map.name))[ZIP != 'ZIP']
+      month_mapping <- data.table( eval( parse( text = map.name)))[ZIP != 'ZIP']
     } else{
-      month_mapping <- eval( parse( text = map.name),
-                             envir = globalenv())[ZIP != 'ZIP']
+      month_mapping <- data.table( eval( parse( text = map.name),
+                                         envir = globalenv()))[ZIP != 'ZIP']
     }
 
     month_mapping[is.na(month_mapping)] <- 0
