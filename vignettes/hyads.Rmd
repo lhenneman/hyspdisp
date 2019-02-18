@@ -46,6 +46,15 @@ setnames( crosswalkin,
           new = "ZIP")
 ```
 
+#### Census population of Zip Code Tabulation Areas
+While not necessary for the HYSPLIT model or processing of its outputs, population-weighted exposure metrics allow for direct comparisons between power plants. In anticipation of this, we load census data packaged by [American Fact Finder](https://factfinder.census.gov/bkmk/table/1.0/en/ACS/17_5YR/B01003/0100000US.86000) and merge it with the crosswalk data. The variable `ZCTA` must first be added from the included `Id2` variable before merging.
+```{r census}
+data( ZCTApop2017)
+ZCTApop2017[, ZCTA := formatC( Id2, format = 'd', flag = '0', width = 5)]
+crosswalkin <- merge( ZCTApop2017, crosswalkin,
+                      by = 'ZCTA')
+```
+
 #### ZCTA shapefile
 Equally important is the ZCTA shapefile. These are available from multiple locations, including the [US census website](http://www2.census.gov/geo/tiger/GENZ2017/shp/cb_2017_us_zcta510_500k.zip). Code below downloads the file from the FTP site, which is more stable but slower. A third alternative (not shown) is to use the `tigris` r library. Download the file, unzip it, and read in the shapefile (here I've unzipped it to a directory in my Desktop). Loading the file may take a few moments.
 ```{r zcta_shapefile}
@@ -359,8 +368,27 @@ qplot( x = yearmonth,
 #### Rank facilities 
 In the examples provided above, we selected two coal units *a priori* to analyze. However, a benefit of HyADS over more complex models is the ability to easily rank-order emissions sources to identify the sources that contribute the most to exposure in a given area. 
 
-[American Fact Finder](https://factfinder.census.gov/bkmk/table/1.0/en/ACS/17_5YR/B01003/0100000US.86000)
+```{r rankfacilities, warning = FALSE, fig.height = 3, fig.width = 7}
+zip_exp_ann_unit <- calc_zip_exposure(year.E = 2005,
+                                      year.H = 2005,
+                                      pollutant = 'SO2.tons',
+                                      rda_file = file.path( rdata_dir, "hyads_unwgted_2005.RData"),
+                                      exp_dir = exposure_dir,
+                                      units.mo = PP.units.monthly1995_2017,
+                                      source.agg = 'unit',
+                                      time.agg = 'year')
 
+
+crosswalkin2005 <- copy( crosswalkin)[, year := 2005]
+zip_exp_ann_unit[, year := 2005]
+
+unitRanks2005 <- rankfacs_by_popwgt_location( link.dt = zip_exp_ann_unit,
+                                              census.dt = crosswalkin2005,
+                                              census.pop.name = 'Estimate; Total',
+                                              rank.by = c( 'hyads'),
+                                              state.value = 'PA')
+
+```
 #### Calculate impacts over time
 
 
