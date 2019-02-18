@@ -398,7 +398,7 @@ knitr::kable( unitRanks2005)
 #### Plot ranked facilities 
 Finally, we can make two plots: one that shows the total 2005 emissions from each of the units in 2005, and one that shows the total population-weighted exposure from these units. We start by linking `unitRanks2005` back with the unit location and emissions information, then execute the `plot_ranked_facs` command twice, once to size the facility units by emissions, and a second to size by `hyads.py.sum`, the metric of population-weighted influence calculated by `rankfacs_by_popwgt_location`.
 
-```{r rankfacilitiesplot, results = 'markup', fig.height = 3, fig.width = 3.5, fig.show='hold'}
+```{r rankfacilitiesplot, results = 'markup', fig.height = 3, fig.width = 3.4, fig.show='hold'}
 unitRanks2005 <- merge( unitRanks2005, units2005, by = 'uID')
 SOx_emiss_plot <- plot_ranked_facs( ranks.dt = unitRanks2005,
                                     size.var = 'SOx',
