@@ -1,6 +1,7 @@
 plot_ranked_facs <- function( ranks.dt,
                               size.var,
                               size.name,
+                              size.legend.range = NULL,
                               plot.title = NULL,
                               xlims = NULL,
                               ylims = NULL,
@@ -26,6 +27,11 @@ plot_ranked_facs <- function( ranks.dt,
     latlonrange <- data.table( xlim = xlims,
                                ylim = ylims)
 
+  # -- find size legend range  -- #
+  if( is.null( size.legend.range) ){
+    size.legend.range <- c( 0, signif( max( ranks.dt.trim$size.var), 2))
+  }
+
 
   # -- download states  -- #
   states <- data.table( map_data("state"))
@@ -49,9 +55,11 @@ plot_ranked_facs <- function( ranks.dt,
                    y = Latitude,
                    size = size.var),
                color = '#479ddd') +
-    scale_size_continuous(guide = guide_legend(title.position = "top"),
-                          name = paste( size.name, 'exposure'),
-                          range = c(.5,5.0)
+    scale_size_area(guide = guide_legend(title.position = "top"),
+                          name = size.name,
+                          max_size = 5,
+                          limits = size.legend.range,
+                          oob = squish
     ) +
     theme(
       plot.title = element_text(size = 16, hjust = 0.5), #element_blank(), #
@@ -92,6 +100,6 @@ plot_ranked_facs <- function( ranks.dt,
 
   print( gg_coal)
   return( list( plot = gg_coal,
-                latlonrange = copy( latlonrange)[,year := NULL]))
+                latlonrange = copy( latlonrange)))
 
 }
