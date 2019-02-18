@@ -22,7 +22,7 @@ comment = "#>"
 ```
 
 
-Here we provide an example workflow of how to run the HyADS model using `hyspdisp`. This vignette provides instruction on how to run the model and ensure the model runs completed. Subsequent vignettes will describe combining, manipulating, and interpreting results.
+Here we provide an example workflow of how to run the HyADS model using `hyspdisp`. This vignette provides instruction on how to run the model and ensure the model runs completed. Subsequent vignettes will describe combining, manipulating, and interpreting results. **TO DECIDE: split into multiple vignettes, or keep as one?**
 
 Begin by installing the package from Github. It is recommended to update all packages when prompted (expecially `SplitR`).
 
@@ -344,7 +344,7 @@ zip_exp_ann_plot
 ```
 
 #### Plot unit-specific impacts over time
-Next, we calculate the monthly emissions weighted HyADS exposure (again, only from the select few runs we initiated above). Code below plots the monthly exposure contributions of the two units in ZIP code 21613, which is located in Maryland.
+Next, we calculate the monthly emissions weighted HyADS exposure (again, only from the select few runs we initiated above). Code below plots the monthly exposure contributions of the two units in ZIP code 21613, which is located in Maryland. Note that this ZIP code was not impacted by the facilities in all the modeled months in 2005.
 ```{r exposure_ziplinks_monthly, warning = FALSE, fig.height = 3, fig.width = 7}
 zip_exp_unit_mo <- calc_zip_exposure(rda_file = "~/Desktop/run_hyspdisp/output_rdata/hyads_unwgted_2005.RData",
                                      units.mo = PP.units.monthly1995_2017,
@@ -367,13 +367,14 @@ qplot( x = yearmonth,
 ```
 
 #### Rank facilities 
-In the examples provided above, we selected two coal units *a priori* to analyze. However, a benefit of HyADS over more complex models is the ability to easily rank-order emissions sources to identify the sources that contribute the most to exposure in a given area. 
+In the examples provided above, we selected two coal units *a priori* to analyze. However, a benefit of HyADS over more complex models is the ability to easily rank-order emissions sources to identify the sources that contribute the most to exposure in a given area. The following code snippet applies the `calc_zip_exposure` function to calculate annual impacts by unit (here, only the two units selected above), then rank-orders their population-weighted exposures on Pennsylvania using the `rankfacs_by_popwgt_location` function. In this function, the input ZIP-code linkage dataset is defined by `link.dt = zip_exp_ann_unit`; the `crosswalkin` file employed above is used again, this time including a column named `year` to ensure the appropriate population-weighting is used; the `census.pop.name` defines the population column in `crosswalkin` (recall we linked ACS ZIP-code populations with the crosswalk file above); the `rank.by` column defines the variables in `zip_exp_ann_unit` to rank by---it is possible to define multiple values (e.g., `rank.by = c( 'hyads', 'SOx')`) to rank by multiple ranking variables if they are available; finally, `state.value`, `city.value`, and `zip.value` can be defined to limit the area of influence (here, we only rank these units' influences on Pennsylvania with `state.value = 'PA'`).
 
 ```{r rankfacilities, warning = FALSE, fig.height = 3, fig.width = 7}
 zip_exp_ann_unit <- calc_zip_exposure(year.E = 2005,
                                       year.H = 2005,
                                       pollutant = 'SO2.tons',
-                                      rda_file = file.path( rdata_dir, "hyads_unwgted_2005.RData"),
+                                      rda_file = file.path( rdata_dir, 
+                                                            "hyads_unwgted_2005.RData"),
                                       exp_dir = exposure_dir,
                                       units.mo = PP.units.monthly1995_2017,
                                       source.agg = 'unit',
@@ -388,19 +389,24 @@ unitRanks2005 <- rankfacs_by_popwgt_location( link.dt = zip_exp_ann_unit,
                                               census.pop.name = 'Estimate; Total',
                                               rank.by = c( 'hyads'),
                                               state.value = 'PA')
-
+unitRanks2005
+```
+```{r rankfacilities_print, results = 'markup', echo = F}
+knitr::kable( unitRanks2005)
 ```
 
-Finally, we can make two plots: one that shows the total 2005 emissions from each of the units in 2005, and one that shows the total population-weighted exposure from these units.
+#### Plot ranked facilities 
+Finally, we can make two plots: one that shows the total 2005 emissions from each of the units in 2005, and one that shows the total population-weighted exposure from these units. We start by linking `unitRanks2005` back with the unit location and emissions information, then execute the `plot_ranked_facs` command twice, once to size the facility units by emissions, and a second to size by `hyads.py.sum`, the metric of population-weighted influence calculated by `rankfacs_by_popwgt_location`.
 
-```{r rankfacilitiesplot, warning = FALSE, fig.height = 3, fig.width = 3}
+```{r rankfacilitiesplot, results = 'markup', fig.height = 3, fig.width = 3.5, fig.show='hold'}
+unitRanks2005 <- merge( unitRanks2005, units2005, by = 'uID')
 SOx_emiss_plot <- plot_ranked_facs( ranks.dt = unitRanks2005,
                                     size.var = 'SOx',
                                     size.name = "2005 SOx emissions",
                                     plot.title = NULL,
                                     xlims = c( -81, -75),
                                     ylims = c( 38.5, 42.5),
-                                    dist.scalebar = 100)
+                                    dist.scalebar = 150)
 
 SOx_emsposure_plot <- plot_ranked_facs( ranks.dt = unitRanks2005,
                                         size.var = 'hyads.py.sum',
@@ -408,9 +414,7 @@ SOx_emsposure_plot <- plot_ranked_facs( ranks.dt = unitRanks2005,
                                         plot.title = NULL,
                                         xlims = SOx_emiss_plot$latlonrange$xlim,
                                         ylims = SOx_emiss_plot$latlonrange$ylim,
-                                        dist.scalebar = 100)
-SOx_emiss_plot$plot
-SOx_emsposure_plot$plot
+                                        dist.scalebar = 150)
 ```
 
 
