@@ -343,6 +343,7 @@ zip_exp_ann_plot <- plot_hyspdisp(hyspdisp_out.sf = zip_exp_ann_sf,
 zip_exp_ann_plot
 ```
 
+#### Plot unit-specific impacts over time
 Next, we calculate the monthly emissions weighted HyADS exposure (again, only from the select few runs we initiated above). Code below plots the monthly exposure contributions of the two units in ZIP code 21613, which is located in Maryland.
 ```{r exposure_ziplinks_monthly, warning = FALSE, fig.height = 3, fig.width = 7}
 zip_exp_unit_mo <- calc_zip_exposure(rda_file = "~/Desktop/run_hyspdisp/output_rdata/hyads_unwgted_2005.RData",
@@ -389,10 +390,28 @@ unitRanks2005 <- rankfacs_by_popwgt_location( link.dt = zip_exp_ann_unit,
                                               state.value = 'PA')
 
 ```
-#### Calculate impacts over time
 
+Finally, we can make two plots: one that shows the total 2005 emissions from each of the units in 2005, and one that shows the total population-weighted exposure from these units.
 
+```{r rankfacilitiesplot, warning = FALSE, fig.height = 3, fig.width = 3}
+SOx_emiss_plot <- plot_ranked_facs( ranks.dt = unitRanks2005,
+                                    size.var = 'SOx',
+                                    size.name = "2005 SOx emissions",
+                                    plot.title = NULL,
+                                    xlims = c( -81, -75),
+                                    ylims = c( 38.5, 42.5),
+                                    dist.scalebar = 100)
 
+SOx_emsposure_plot <- plot_ranked_facs( ranks.dt = unitRanks2005,
+                                        size.var = 'hyads.py.sum',
+                                        size.name = "2005 SOx HyADS exposure",
+                                        plot.title = NULL,
+                                        xlims = SOx_emiss_plot$latlonrange$xlim,
+                                        ylims = SOx_emiss_plot$latlonrange$ylim,
+                                        dist.scalebar = 100)
+SOx_emiss_plot$plot
+SOx_emsposure_plot$plot
+```
 
 
 
