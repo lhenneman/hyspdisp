@@ -12,7 +12,7 @@ output: html_document
 ### Install ```hyspdisp``` from github and load 
 First, download and install ```hyspdisp```
 ```{r}
-devtools::install_github("lhenneman/hyspdisp@dev2")
+devtools::install_github("lhenneman/hyspdisp@dev2", force = TRUE)
 library(hyspdisp)
 ```
 
