@@ -8,17 +8,21 @@
 #' @return This function returns a data table of run parameters accepted by hyspdisp_fac_model and hyspdisp_fac_model_parallel.
 
 ## define species parameters
-define_inputs <- function( units, startday, endday) {
+define_inputs <- function( units,
+                           startday,
+                           endday,
+                           start_hours =  c( 0, 6, 12, 18),
+                           duration = 240){
   startday.date <- as.Date( startday)
   endday.date   <- as.Date( endday)
 
   out <- data.table( expand.grid( ID = units$ID,
-                                  start_hour = c( 0, 6, 12, 18),
+                                  start_hour = start_hours,
                                   start_day = seq.Date( from = as.Date( startday.date),
                                                         to =   as.Date( endday.date),
                                                         by = '1 day'),
                                   duration_emiss_hours = 1,
-                                  duration_run_hours = 240))
+                                  duration_run_hours = duration))
 
   out <- merge( out, units, by = 'ID')
 
