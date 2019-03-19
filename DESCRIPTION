@@ -15,7 +15,7 @@ BugReports: https://github.com/lhenneman/hyspdisp/issues
 License: GPL-3
 LazyData: true
 Remotes: lhenneman/SplitR
-Imports:
+Depends:
     data.table,
     magrittr,
     raster,
