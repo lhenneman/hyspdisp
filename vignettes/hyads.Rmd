@@ -56,7 +56,7 @@ crosswalkin <- merge( ZCTApop2017, crosswalkin,
 ```
 
 #### ZCTA shapefile
-Equally important is the ZCTA shapefile. These are available from multiple locations, including the [US census website](http://www2.census.gov/geo/tiger/GENZ2017/shp/cb_2017_us_zcta510_500k.zip). Code below downloads the file from the FTP site, which is more stable but slower. A third alternative (not shown) is to use the `tigris` r library. Download the file, unzip it, and read in the shapefile (here I've unzipped it to a directory in my Desktop). Loading the file may take a few moments.
+Equally important is the ZCTA shapefile. These are available from multiple locations, including the [US census website](http://www2.census.gov/geo/tiger/GENZ2017/shp/cb_2017_us_zcta510_500k.zip). Code below downloads the file from the FTP site, which is more stable but slower. A second alternative (not shown) is to use the `tigris` r library. Download the file, unzip it, and read in the shapefile (here I've unzipped it to a directory in my Desktop). Loading the file may take a few moments.
 ```{r zcta_shapefile}
 # Define the storage directory, create it if it does not exist
 zcta_dir <- file.path('~', 'Desktop', 'run_hyspdisp', 'zcta_500k')
@@ -94,7 +94,8 @@ dir.create( hpbl_dir,
             recursive = T, 
             showWarnings = F)
 
-# Download the PBL file from NOAA for years up to and including
+# Download the PBL file from NOAA for years up to and including 2012
+library( ncdf4)
 hpbl_file_NOAA <- file.path( hpbl_dir, 'hpbl.mon.mean.nc')
 url_NOAA <- "ftp://ftp.cdc.noaa.gov/Datasets/20thC_ReanV2/Monthlies/gaussian/monolevel/hpbl.mon.mean.nc"
 if( !file.exists( hpbl_file_NOAA))
@@ -162,7 +163,7 @@ exposure_dir <- file.path( proc_dir, 'exposure_data')
 
 
 #### Download reanalysis meteorology files
-While SplitR (the R package that calls HYSPLIT) includes code that checks if the appropriate metorological files are downloaded, it is recommended to download needed files explicitely before the *first* run of`hyspdisp_fac_model_parallel` because the parallel code does not handle the download well split over multiple cores. Below is shown code to test for the three meteorology files needed for the present run, and download them if they are not already in the `meteo_dir`. The reanalysis met files are about 120 MB each. 
+While SplitR (the R package that calls HYSPLIT) includes code that checks if the appropriate metorological files are downloaded, it is recommended to download needed files explicitely before the *first* run of `hyspdisp_fac_model_parallel` because the parallel code does not handle the download well split over multiple cores. Below is shown code to test for the three meteorology files needed for the present run, and download them if they are not already in the `meteo_dir`. The reanalysis met files are about 120 MB each. 
 ```{r met_files,results = 'markup'}
 metfiles.vignette <- c( 'RP200412.gbl',
                         'RP200501.gbl',
@@ -183,12 +184,16 @@ if( length( metfiles.vignette) > 0)
 ```
 
 #### Define time periods to be run
-To define an object that includes all emission events in a given time period, we can use the helper function `define_inputtimes`. This takes as inputs a starting and ending day, and outputs a table of value whose rows will later correspond to inputs into the main `hyspdisp` worker functions. The following command combines the units defined above with four times a day for January-June in 2005 (we show an example for half the year here to keep the computation manageable for a desktop computer). The resulting data.table's column names are printed in the table below.
+HYSPLIT, as applied here, tracks air parcels emitted at certain times and locations. `hyspdisp` refers to these as *emissions events*. Once HYSPLIT has been run for each emissions event, the simulated parcel locations are aggregated by source, time, and location. The functions below are written to enable runs of many emissions events.
+
+To define an object that includes all emission events in a given time period, we can use the helper function `define_inputtimes`. This takes as inputs a starting and ending day, and outputs a table of value whose rows will later correspond to inputs into the main `hyspdisp` worker functions. The following command combines the units defined above with four times a day for January-June in 2005 (we show an example for half the year here to keep the computation manageable for a desktop computer). Four daily emissions events are defined by the `start_hours` variable, and `duration = 240` denotes that the emitted air parces are tracked for 240 hours (10 days). The resulting data.table's column names are printed in the table below.
 ```{r define_inputs}
 ## combine dates and hours
 input_refs <- define_inputs( units = units.run,
                              startday = '2005-01-01',
-                             endday = '2005-06-30')
+                             endday = '2005-06-30',
+                             start_hours =  c( 0, 6, 12, 18),
+                             duration = 240)
 
 names( input_refs)
 ```
@@ -202,7 +207,9 @@ The following examples show how to run a small subset (chosen to provide workabl
 #### Run HYSPLIT
 The `hyspdisp_fac_model_parallel` function runs HYSPLIT for each emissions event described by the rows of the `run_ref_tab`. Inputs defined above, including the projected ZCTA shapefile (`zcta.trans`), the ZIP-ZCTA crosswalk (`crosswalkin`), the planetary boundary layer raster (`hpbl_rasterin`), and working directories are necessary in the function call. With `link2zip = T` you can link dispersion patterns from individual emissions events to ZIP codes; this, however, somewhat violates the spirit of HyADS, since the large number of emissions events is used as a check on some other uncertainties introduced by the simplifying assumptions. 
 
-Here it's run for a sample of twenty (`run_sample`) rows of the `input_refs` table. The results will be saved in the `hysraw_dir`. `mc.cores` is an option in the mcapply function that controls the number of cores should be used. The output describes where the files are saved, or the reasons they were not run.
+Here it's run for a sample of twenty (`run_sample`) rows of the `input_refs` table. The results will be saved in the `hysraw_dir`.  `mc.cores` is an option in the `mcapply` function that controls the number of cores should be used; the code below uses the `detectCores` function to determine how many cores are available, but this approach is less reliable on some machines. 
+
+`hysp_raw`, created below, is a list of output describing where the outputs are saved or the reasons that HYSPLIT was not run. The following code will return warnings from the projection transformation applied to the PBL layer rasters. These are expected and can safely be ignored.
 
 **If you get an error running HYSPLIT, it is likely because the meteorology files did not download correctly. Check your `meteo_dir` to ensure all files are present and at least 100MB in size.**
 
@@ -218,7 +225,7 @@ hysp_raw <- mclapply( X = run_sample,
                       prc_dir = proc_dir,
                       hyo_dir = hysraw_dir,
                       met_dir = meteo_dir,
-                      mc.cores = 6)
+                      mc.cores = detectCores() - 1)
 hysp_raw[1]
 ```
 ```{r hyspdisp_fac_print, echo = FALSE, results = 'markup'}
@@ -228,6 +235,8 @@ knitr::kable( head( hysp_raw, 1))
 
 #### Link results to ZIP codes
 Most current implementations of HyADS, instead of linking dispersion patterns from individual emissions events, link the patterns by month. With the `hysdisp_zip_link` function, users can link all air parcels to ZIP codes by month for an individual unit. Here, we define the variables `yearmons` with combinations of years and months. `hysdisp_zip_link` reads in all the relevant files (i.e., those that correspond to the provided `month_YYYYMM` and `unit`) produced by the `hyspdisp_fac_model_parallel` function and saved to the `hyo_dir`, then links them to ZIP codes. The result is data.table of ZIP codes and relative contributions `N`, and an identical `.csv` file is saved to the `zpc_dir`. `N` is not weighted by the `unit`'s emissions. `hyspdisp_zip_link` is parallelizable for different months using `mclapply` or similar, and is run for a single unit at a time (we define the `unit` as the each unit in `unit.run`.)
+
+`linked_zips1` and `linked_zips2` contain monthly ZIP code exposure attributable to the emissions events modeled by the `hyspdisp_fac_model_parallel` function above. Keep in mind that we only modeled a subset of all possible emissions events defined in `input_refs`. Therefore, the following objects only contain ZIP code linkages from a subset of all emissions. Since we did not model any emissions events after June, the commands will return warnings for months 7-12.
 ```{r ziplink, message = FALSE}
 yearmons <- paste0( 2005, 1:12)
 linked_zips1 <- mclapply( yearmons,
@@ -239,7 +248,7 @@ linked_zips1 <- mclapply( yearmons,
                           prc_dir = proc_dir,
                           zpc_dir = ziplink_dir,
                           hyo_dir = hysraw_dir,
-                          mc.cores = 6)
+                          mc.cores = detectCores() - 1)
 
 linked_zips2 <- mclapply( yearmons,
                           hyspdisp_zip_link,
@@ -250,13 +259,13 @@ linked_zips2 <- mclapply( yearmons,
                           prc_dir = proc_dir,
                           zpc_dir = ziplink_dir,
                           hyo_dir = hysraw_dir,
-                          mc.cores = 6)
+                          mc.cores = detectCores() - 1)
 ```
 
 #### Plot the results
 At this point, it makes sense to take a look at the results to see which ZIP codes are impacted by emissions from the facility whose impacts we just modeled. To acheive this, we can use the `plot_hyspdisp` function, which takes as input a data.table (or data.frame) linked to simple features ZIP code data. We can use the `st_read` function from the `sf` package to read in the same ZCTA shapefile we used to link the HYSPLIT output to ZIP codes. Next, we merge the `sf` ZIP code object to both the crosswalk file and the `linked_zips` object created above, then feed the merged dataset to the `plot_hyspdisp` function, which returns a ggplot object.
 
-Keep in mind, since we only modeled a subset of the potential model runs defined in `input_refs`, the plotted impacts below include only results from a single emissions event. Further, the plotted values are "HyADS raw exposure", and are comparable only to a relative exposure of 0. So, a value of 0.01 represents 10x more exposure than a value of 0.001, but only in relation to unit 3136-1.
+Keep in mind, since we only modeled a subset of the potential model runs defined in `input_refs`, the impacts contained in `zip_dataset_sf` and plotted below include only results from a single emissions event. Further, the plotted values are "HyADS raw exposure", and are comparable only to a relative exposure of 0. So, a value of 0.01 represents 10x more exposure than a value of 0.001, but only in relation to unit 3136-1.
 
 ```{r plot_ziplinks, results = 'markup', message = FALSE, warning = FALSE, fig.width = 7}
 library(sf)
@@ -271,17 +280,18 @@ zips_crosswalk.sf <- merge( zips.sf,
                             crosswalkin, 
                             by = "ZCTA", all = F, allow.cartesian = TRUE) 
 
-zip_dataset_sf <- data.table( merge( zips_crosswalk.sf, 
-                                     linked_zips1[[1]], 
+zip_dataset_sf <- data.table( units.run[1,],
+                              merge( zips_crosswalk.sf,
+                                     linked_zips1[[1]],
                                      by = c('ZIP'), all.y = T))
 
 ziplink_plot <- plot_hyspdisp(hyspdisp_out.sf = zip_dataset_sf,
                               metric = 'N',
-                              plot.title = paste('Partial Jan. 2005 HyADS raw exposure, uID:', 
-                                                 units.run[1, ID]),
+                              plot.title = paste('Partial Jan. 2005 HyADS raw exposure, uID:',
+                                                 zip_dataset_sf[1, uID]),
                               legend.title = 'HyADS raw exposure',
-                              facility.loc = data.table( x = units.run[1, Longitude],
-                                                         y = units.run[1, Latitude]))
+                              facility.loc = data.table( x = zip_dataset_sf[1, Longitude],
+                                                         y = zip_dataset_sf[1, Latitude]))
 ziplink_plot
 ```
 
@@ -317,7 +327,7 @@ data( PP.units.monthly1995_2017)
 #### Weight the results by emissions
 The `calc_zip_exposure` function takes as input the .RData file created by `combined_ziplinks` and monthly power plant emissions. The user can select the hyspdisp year (`year.H`), the emissions year (`year.E`), the weighting pollutant (although it does not necessarily have to be a pollutant), the source aggregation (`source.agg` can be designated 'total', 'facility', or 'unit'), the time aggregation (`time.agg` can be set to 'month' or year'). Results are saved to the `exp_dir` and returned, but `return.monthly.data` must be set to true to return data when `time.agg = 'month'` (the default was set to save working memory space).
 
-Here, we first calculate the annual HyADS emissions weighted exposure for all emissions modeled above and plot the results. 
+Here, we first calculate the annual HyADS emissions weighted exposure for all emissions modeled above and plot the results. The plots require a large amount of working memory, and may require you to clear your image history (if using RStudio).
 ```{r exposure_ziplinks_annual, results = 'markup', message = FALSE, warning = FALSE, fig.width = 7}
 zip_exp_ann <- calc_zip_exposure(rda_file = "~/Desktop/run_hyspdisp/output_rdata/hyads_unwgted_2005.RData",
                                  units.mo = PP.units.monthly1995_2017,
@@ -399,6 +409,7 @@ knitr::kable( unitRanks2005)
 Finally, we can make two plots: one that shows the total 2005 emissions from each of the units in 2005, and one that shows the total population-weighted exposure from these units. We start by linking `unitRanks2005` back with the unit location and emissions information, then execute the `plot_ranked_facs` command twice, once to size the facility units by emissions, and a second to size by `hyads.py.sum`, the metric of population-weighted influence calculated by `rankfacs_by_popwgt_location`.
 
 ```{r rankfacilitiesplot, results = 'markup', fig.height = 3, fig.width = 3.4, fig.show='hold'}
+library(ggsn)
 unitRanks2005 <- merge( unitRanks2005, units2005, by = 'uID')
 SOx_emiss_plot <- plot_ranked_facs( ranks.dt = unitRanks2005,
                                     size.var = 'SOx',

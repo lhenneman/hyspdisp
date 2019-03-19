@@ -15,16 +15,18 @@ BugReports: https://github.com/lhenneman/hyspdisp/issues
 License: GPL-3
 LazyData: true
 Remotes: lhenneman/SplitR
-Depends:
+Imports:
     data.table,
     magrittr,
     raster,
+    rgeos,
     sp,
     SplitR
 Suggests:
     ggplot2,
+    ggsn,
     knitr,
-    rgeos,
+    ncdf4,
     rmarkdown,
     scales,
     sf,
