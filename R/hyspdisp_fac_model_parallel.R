@@ -63,8 +63,10 @@ hyspdisp_fac_model_parallel <- function(x,
                                        ".csv"))
 
   ## Check if output parcel locations file already exists
-  tmp.exists <- list.files( hyo_dir,
-                            full.names = T)
+  tmp.exists <- system( paste( "ls -f", 
+                               file.path( output_file)),
+                        intern = T)
+
 
   ## Initial output data.table
   out1 <- paste( "Partial trimmed parcel locations (below height 0 and the highest PBL height) already exist at",
