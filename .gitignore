@@ -1,12 +1,10 @@
+#Meta
+#doc
+#inst/doc
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
-test.R
-test2.R
 .DS_Store
 .Rapp.history
-gridded_first_equalarea.png
-hd_10.2_2005equalarea.png
-hpbl.mon.mean.nc
-parameters_hyspdisp_vignette.R
+extrafiles

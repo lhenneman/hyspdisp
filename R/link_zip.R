@@ -39,15 +39,21 @@ link_zip <- function( d,
     # extract data layer from raster, disaggregate to .1°x.1°
     if( is.null( rasterin) == T)
       stop( "Need PBL raster!")
-    pbl_layer <- rasterin
+    pbl_layer <- subset_nc_date(hpbl_brick = rasterin,
+                                vardate = d$Pdate[1])
 
-    suppressWarnings(
+
+ #   suppressWarnings(
       pbl_layer.t <- projectRaster( pbl_layer,
                                     crs = CRS( proj4string( spdf)))
-    )
-    pbl_layer.d <- disaggregate( pbl_layer.t,
-                                 fact = 10)
+ #   )
 
+    # aim for a resolution of 12 km
+    pbl_resolution <- res( pbl_layer.t)
+    x_fact <- floor( pbl_resolution[1] / 12000)
+    y_fact <- floor( pbl_resolution[2] / 12000)
+    pbl_layer.d <- disaggregate( pbl_layer.t,
+                                 fact = c( x_fact, y_fact))
 
     # count number of particles in each cell,
     # find original raster cells, divide number by pbl
@@ -80,16 +86,25 @@ link_zip <- function( d,
                          zc_dt,
                          groups,
                          raster_obj) {
-      over( zc_dt[ groups %in% group,],
-            raster_obj,
-            fn = mean)
-    }
+       
+      dt <- data.table( over( zc_dt[ groups %in% group,],
+                          raster_obj,
+                          fn = mean))
+  
+      # if "over" returned no matches, need a vector of NA's
+      if( nrow( dt) == 1 & is.na( dt[1])){
+        dt <- data.table( X = as.numeric( rep( NA, length( zc_dt[ groups %in% group,]))))
+        setnames( dt, "X", names( raster_obj))
+      }
+    
+      return( dt)
+   }
 
-    or <- data.table( rbindlist( lapply( unique( zc_groups),
-                                         over_fn,
-                                         zc_trim,
-                                         zc_groups,
-                                         r3)))
+    or <- rbindlist( lapply( unique( zc_groups),
+                                     over_fn,
+                                     zc_dt = zc_trim,
+                                     groups = zc_groups,
+                                     raster_obj = r3))
 
 
 

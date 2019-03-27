@@ -27,10 +27,11 @@ trim_pbl <- function(Min,
                                              yr = unique(M[,Pyear]))))
 
   #Convert M to spatial points data frame
-  # rasterin <- rotate(brick(hpbl_file, varname = 'hpbl' ))
   xy <- M[,.(lon, lat)]
   spdf <- SpatialPointsDataFrame(coords = xy, data = M,
                                  proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+
+  # identify cells for each parcel location
   spdf$rastercell <- cellFromXY(rasterin, spdf)
   spdf.dt <- na.omit( data.table(spdf@data))
 
@@ -39,12 +40,12 @@ trim_pbl <- function(Min,
     yer <- my[m,yr]
     day <- paste( yer, mon, '01', sep='-')
 
-    rastersub <- subset_nc_date(hpbl_file = hpbl_file,
+    pbl_layer <- subset_nc_date(hpbl_brick = rasterin,
                                 varname = 'hpbl',
                                 vardate = day)
 
     spdf.dt[Pmonth %in% mon & Pyear %in% yer,
-            pbl := rastersub[spdf.dt[Pmonth %in% mon & Pyear %in% yer, rastercell]]]
+            pbl := pbl_layer[spdf.dt[Pmonth %in% mon & Pyear %in% yer, rastercell]]]
   }
   spdf.dt <- spdf.dt[height < pbl]
   return(M[spdf.dt$ref,

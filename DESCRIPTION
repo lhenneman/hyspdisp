@@ -19,6 +19,16 @@ Depends:
     data.table,
     magrittr,
     raster,
+    rgeos,
     sp,
-    parallel
+    SplitR
 Suggests:
+    ggplot2,
+    ggsn,
+    knitr,
+    ncdf4,
+    rmarkdown,
+    scales,
+    sf,
+    viridis
+VignetteBuilder: knitr
