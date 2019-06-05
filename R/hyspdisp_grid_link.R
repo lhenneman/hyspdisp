@@ -1,17 +1,16 @@
-hyspdisp_zip_link <- function( month_YYYYMM = NULL,
-                               start_date = NULL,
-                               end_date = NULL,
-                               unit,
-                               duration_run_hours = 240,
-                               hpbl_raster,
-                               zcta2,
-                               crosswalk,
-                               overwrite = F,
-                               current_dir = getwd(),
-                               prc_dir = NULL,
-                               zpc_dir = NULL,
-                               hyo_dir = NULL,
-                               hyo_dir2 = NULL){
+hyspdisp_grid_link <- function( month_YYYYMM = NULL,
+                                start_date = NULL,
+                                end_date = NULL,
+                                unit,
+                                p4s,
+                                duration_run_hours = 240,
+                                hpbl_raster,
+                                overwrite = F,
+                                current_dir = getwd(),
+                                prc_dir = NULL,
+                                zpc_dir = NULL,
+                                hyo_dir = NULL,
+                                hyo_dir2 = NULL){
 
   if( (is.null( start_date) | is.null( end_date)) & is.null( month_YYYYMM))
     stop( "Define either a start_date and an end_date OR a month_YYYYMM")
@@ -43,15 +42,15 @@ hyspdisp_zip_link <- function( month_YYYYMM = NULL,
   }
 
   ## name the eventual output file
-  zip_output_file <- file.path( zpc_dir,
-                                paste0("ziplinks_",
-                                       unit$ID, "_",
-                                       start_date, "_",
-                                       end_date,
-                                       ".csv"))
+  grid_output_file <- file.path( zpc_dir,
+                                 paste0("gridlinks_",
+                                        unit$ID, "_",
+                                        start_date, "_",
+                                        end_date,
+                                        ".csv"))
 
   ## Run the zip linkages
-  if( !file.exists( zip_output_file) | overwrite == T){
+  if( !file.exists( grid_output_file) | overwrite == T){
 
     ## identify dates for hyspdisp averages and dates for files to read in
     vec_dates <- seq.Date( as.Date( start_date),
@@ -98,35 +97,26 @@ hyspdisp_zip_link <- function( month_YYYYMM = NULL,
                         rasterin = hpbl_raster)
     print( paste( Sys.time(), "PBLs trimmed"))
 
-    ## Link zips
+    ## Link to grid
     disp_df_link <- link_zip( d = d_trim,
-                              zc = zcta2,
-                              cw = crosswalk,
-                              p4string = proj4string( zcta2),
-                              rasterin = hpbl_raster)
+                              p4string = p4s,
+                              rasterin = hpbl_raster,
+                              return.grid = T)
 
-    print(  paste( Sys.time(), "ZIPs linked"))
+    print(  paste( Sys.time(), "Grids linked"))
 
-    out <- disp_df_link[, .(ZIP, N)]
-    out$ZIP <- formatC( out$ZIP,
-                        width = 5,
-                        format = "d",
-                        flag = "0")
+    out <- disp_df_link
 
     if( nrow( out) != 0){
       ## write to file
       write.csv( out,
-                 zip_output_file)
+                 grid_output_file)
 
-      print( paste( Sys.time(), "Linked ZIPs  and saved to", zip_output_file))
+      print( paste( Sys.time(), "Linked ZIPs  and saved to", grid_output_file))
     }
   } else {
-    print( paste("File", zip_output_file, "already exists! Use overwrite = TRUE to over write"))
-    out <- fread( zip_output_file)
-    out$ZIP <- formatC( out$ZIP,
-                        width = 5,
-                        format = "d",
-                        flag = "0")
+    print( paste("File", grid_output_file, "already exists! Use overwrite = TRUE to over write"))
+    out <- fread( grid_output_file)
   }
 
   return( out)
