@@ -16,6 +16,8 @@ plot_hyspdisp <- function(hyspdisp_out.sf,
                           plot.title = NULL,
                           legend.lims = NULL,
                           legend.title = NULL,
+                          longitude.lims = c(-123, -69),
+                          latitude.lims = c(24, 50),
                           facility.loc = data.table( x = as.numeric(NA),
                                                      y = as.numeric(NA)),
                           legend.text.angle = 0){
@@ -85,8 +87,8 @@ plot_hyspdisp <- function(hyspdisp_out.sf,
     ) +
     scale_shape_discrete(solid = T) +
     coord_sf(
-      xlim = c(-123, -69),
-      ylim = c(24, 50),
+      xlim = longitude.lims,
+      ylim = latitude.lims,
       datum = NA
     ) +
     colorscale +
