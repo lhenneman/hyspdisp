@@ -1,6 +1,7 @@
 combine_monthly_gridlinks <- function( month_YYYYMMs,
                                        zpc_dir,
-                                       rda_dir = NULL){
+                                       rda_dir = NULL,
+                                       p4s = "+proj=aea +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m"){
 
   # Create directory to store RData files if it does not exist
   if( is.null( rda_dir)){
@@ -45,7 +46,13 @@ combine_monthly_gridlinks <- function( month_YYYYMMs,
                       },
                       files.month)
 
-    MergedDT  <- brick( data.h)
+    #calculate consistent extent
+    data.h.e <- extent( Reduce( extend, data.h))
+
+    #apply extent to all rasters, brick it!
+    data.h <- lapply( data.h, extend, data.h.e)
+    MergedDT <- brick( data.h)
+    crs( MergedDT) <- CRS( p4s)
 
     # assign to mappings
     name.map <- paste0("MAP", month.m, ".", year.h)
@@ -56,30 +63,20 @@ combine_monthly_gridlinks <- function( month_YYYYMMs,
   }
 
   # gather output
-  out.sum <- suppressWarnings( Reduce( "+", mget(names.map)))
-
-  extend_all <- function( rasters){
-    extent( Reduce( extend, rasters))
-  }
-
-  sum_all <- function(rasters, extent){
-    re = lapply(rasters, function(r){extend(r,extent)})
-    Reduce("+", re)
-  }
+  out.r <- mget(names.map)
 
   #calculate consistent extent
   out.e <- extent( Reduce( extend, out.r)) #lapply( out.r, extent)
 
-  #apply extent to all rasters, brick it!
-  out <- lapply( out.r, extend, out.e2)
-  out.b <- brick( out)
+  #apply extent to all rasters
+  out <- lapply( out.r, extend, out.e)
 
   # save to rdata file
   rda.filename <- file.path( rda_dir, paste0('hyads_grid_unwgted_', year.h, '.RData'))
-  save( out.b, file = rda.filename)
+  save( out, file = rda.filename)
 
   print( paste("Monthly RData file written to", rda.filename))
-  return( out.b)
+  return( out)
 }
 
 
