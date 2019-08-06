@@ -52,7 +52,7 @@ calc_zip_exposure <- function(year.E,
   monthly.filelist <- c()
 
   #Iterate over months of the year
-  print(paste("Calculating ZIP code exposures for HYSPLIT year ",
+  print(paste("Calculating exposures for HYSPLIT year ",
               year.H, " and emissions year ", year.E, "!", sep=''))
   for (i in 1:12){
 
