@@ -69,14 +69,29 @@ combine_monthly_gridlinks <- function( month_YYYYMMs,
   out.e <- extent( Reduce( extend, out.r)) #lapply( out.r, extent)
 
   #apply extent to all rasters
-  out <- lapply( out.r, extend, out.e)
+  out.b <- lapply( out.r, extend, out.e)
+
+  #convert to data.table
+  out.dt <- lapply( out.b, function( x) data.table( rasterToPoints( x)))
+
+  #round to nearest meter to ease re-rasterizing later
+  out.dt <- lapply( out.dt,
+                    function( dt)
+                      dt[, `:=`( x = round( x),
+                                 y = round( y))])
+
+  #extract from list
+  lapply( names( out.dt),
+          function( x, l){
+            names( l[[x]]) <- gsub( '^X', '', names( l[[x]]))
+            assign( x, l[[x]], envir = parent.env( environment()))},
+          out.dt)
 
   # save to rdata file
-  rda.filename <- file.path( rda_dir, paste0('hyads_grid_unwgted_', year.h, '.RData'))
-  save( out, file = rda.filename)
+  rda.filename <- file.path( rda_dir, paste0('hyspdisp_grid_', year.h, '.RData'))
+  save( list = names.map, file = rda.filename)
 
   print( paste("Monthly RData file written to", rda.filename))
-  return( out)
+  return( mget( names.map))
 }
-
 
