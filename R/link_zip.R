@@ -23,13 +23,14 @@ link_zip <- function( d,
                       p4string,
                       zc = NULL,
                       cw = NULL,
+                      county.sp = NULL,
                       rasterin = NULL,
                       return.grid = F){
 
   if( is.null( rasterin) == T)
     stop( "Need PBL raster!")
-  if( !return.grid & (is.null( zc) | is.null( cw)))
-    stop( "Need zcta and crosswalk for zip links!")
+  if( !return.grid & ((is.null( zc) | is.null( cw)) & (is.null( county.sp))))
+    stop( "Need [zcta and crosswalk for zip links] or [county.sp for county links]!")
 
 
   xy <- d[,.( lon, lat)]
@@ -76,6 +77,26 @@ link_zip <- function( d,
 
   #  convert to polygons for faster extracting
   r3 <- rasterToPolygons(r2)
+
+  # if county.so, return xyz object
+  if( !is.null( county.sp)){
+    print( 'Linking counties!')
+    county.o <- over( county.sp,
+                      r3,
+                      fn = mean)
+    county.dt <- data.table( county.o)
+
+    # if "over" returned no matches, need a vector of NA's
+    if( nrow( county.dt) == 1 & is.na( county.dt[1])){
+      county.dt <- cbind( as.data.table( county.sp[, c( 'statefp', 'countyfp', 'state_name',
+                                                        'name', 'geoid')]),
+                          data.table( X = as.numeric( rep( NA, length( county.sp)))))
+      setnames( county.dt, "X", names( r3))
+    }
+
+    return( county.dt)
+  }
+
 
   #crop zip codes to only use ones over the extent
   zc_trim <- crop( zc,
