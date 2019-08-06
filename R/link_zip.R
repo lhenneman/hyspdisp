@@ -91,7 +91,7 @@ link_zip <- function( d,
       county.dt <- cbind( as.data.table( county.sp[, c( 'statefp', 'countyfp', 'state_name',
                                                         'name', 'geoid')]),
                           data.table( X = as.numeric( rep( NA, length( county.sp)))))
-      setnames( county.dt, "X", names( r3))
+      setnames( county.dt, "X", 'N')
     }
 
     return( county.dt)

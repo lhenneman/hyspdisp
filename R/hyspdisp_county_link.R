@@ -5,7 +5,7 @@ hyspdisp_zip_link <- function( month_YYYYMM = NULL,
                                unit,
                                duration_run_hours = 240,
                                hpbl_raster,
-                                overwrite = F,
+                               overwrite = F,
                                current_dir = getwd(),
                                prc_dir = NULL,
                                zpc_dir = NULL,
@@ -107,28 +107,20 @@ hyspdisp_zip_link <- function( month_YYYYMM = NULL,
                               p4string = proj4string( counties.sp),
                               rasterin = hpbl_raster)
 
-    print(  paste( Sys.time(), "ZIPs linked"))
+    print(  paste( Sys.time(), "Counties linked"))
 
-    out <- disp_df_link[, .(ZIP, N)]
-    out$ZIP <- formatC( out$ZIP,
-                        width = 5,
-                        format = "d",
-                        flag = "0")
+    out <- disp_df_link
 
     if( nrow( out) != 0){
       ## write to file
       write.csv( out,
                  zip_output_file)
 
-      print( paste( Sys.time(), "Linked ZIPs  and saved to", zip_output_file))
+      print( paste( Sys.time(), "Linked counties and saved to", zip_output_file))
     }
   } else {
     print( paste("File", zip_output_file, "already exists! Use overwrite = TRUE to over write"))
     out <- fread( zip_output_file)
-    out$ZIP <- formatC( out$ZIP,
-                        width = 5,
-                        format = "d",
-                        flag = "0")
   }
 
   return( out)
