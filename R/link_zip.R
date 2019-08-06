@@ -85,6 +85,10 @@ link_zip <- function( d,
                       r3,
                       fn = mean)
     county.dt <- data.table( county.o)
+    county.dt <- cbind( as.data.table( county.sp[, c( 'statefp', 'countyfp', 'state_name',
+                                                      'name', 'geoid')]),
+                        county.dt)
+    setnames( county.dt, names( r3), 'N')
 
     # if "over" returned no matches, need a vector of NA's
     if( nrow( county.dt) == 1 & is.na( county.dt[1])){
