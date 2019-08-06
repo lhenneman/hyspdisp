@@ -98,7 +98,7 @@ hyspdisp_county_link <- function( month_YYYYMM = NULL,
     print( paste( Sys.time(), "PBLs trimmed"))
 
     ## Link counties
-    counties.sp <- sf::as( counties, 'Spatial')
+    counties.sp <- sf::as_Spatial( counties)
     p4s <- "+proj=aea +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m"
     counties.sp <- spTransform(counties.sp, p4s)
 
