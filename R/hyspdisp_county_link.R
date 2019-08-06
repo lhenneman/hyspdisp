@@ -1,16 +1,16 @@
-hyspdisp_zip_link <- function( month_YYYYMM = NULL,
-                               start_date = NULL,
-                               end_date = NULL,
-                               counties = USAboundaries::us_counties( ),
-                               unit,
-                               duration_run_hours = 240,
-                               hpbl_raster,
-                               overwrite = F,
-                               current_dir = getwd(),
-                               prc_dir = NULL,
-                               zpc_dir = NULL,
-                               hyo_dir = NULL,
-                               hyo_dir2 = NULL){
+hyspdisp_county_link <- function( month_YYYYMM = NULL,
+                                  start_date = NULL,
+                                  end_date = NULL,
+                                  counties = USAboundaries::us_counties( ),
+                                  unit,
+                                  duration_run_hours = 240,
+                                  hpbl_raster,
+                                  overwrite = F,
+                                  current_dir = getwd(),
+                                  prc_dir = NULL,
+                                  zpc_dir = NULL,
+                                  hyo_dir = NULL,
+                                  hyo_dir2 = NULL){
 
   if( (is.null( start_date) | is.null( end_date)) & is.null( month_YYYYMM))
     stop( "Define either a start_date and an end_date OR a month_YYYYMM")
