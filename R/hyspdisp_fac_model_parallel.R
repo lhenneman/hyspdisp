@@ -20,7 +20,8 @@ hyspdisp_fac_model_parallel <- function(x,
   ## select date and hour
   ## Subset table to use appropriate row
   run_ref_tab.use <- run_ref_tab[x]
-  print(paste0('Date: ', format( run_ref_tab.use$start_day,
+  print(paste0('Unit:', run_ref_tab.use$ID,
+               'Date: ', format( run_ref_tab.use$start_day,
                                  format = "%Y-%m-%d"), ', Hour: ',
                run_ref_tab.use$start_hour))
 
