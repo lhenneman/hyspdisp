@@ -52,7 +52,7 @@ combine_monthly_gridlinks <- function( month_YYYYMMs,
     #apply extent to all rasters, brick it!
     data.h <- lapply( data.h, extend, data.h.e)
     MergedDT <- brick( data.h)
-    crs( MergedDT) <- CRS( p4s)
+    #crs( MergedDT) <- CRS( p4s)
 
     # assign to mappings
     name.map <- paste0("MAP", month.m, ".", year.h)
