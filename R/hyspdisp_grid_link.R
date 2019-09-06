@@ -111,11 +111,9 @@ hyspdisp_grid_link <- function( month_YYYYMM = NULL,
       write.csv( out,
                  grid_output_file)
       
-           if( return_linked_dataset){
-            out <- disp_df_link
-          } else
-            out <- grid_output_file
-
+     if( !return_linked_dataset)
+        out <- zip_output_file
+ 
 
       print( paste( Sys.time(), "Linked ZIPs  and saved to", grid_output_file))
     }
