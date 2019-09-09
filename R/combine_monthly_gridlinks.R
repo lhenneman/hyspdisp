@@ -1,7 +1,8 @@
 combine_monthly_gridlinks <- function( month_YYYYMMs,
                                        zpc_dir,
                                        rda_dir = NULL,
-                                       p4s = "+proj=aea +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m"){
+                                       p4s = "+proj=aea +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m",
+                                       crop.extent = NULL){
 
   # Create directory to store RData files if it does not exist
   if( is.null( rda_dir)){
@@ -42,6 +43,9 @@ combine_monthly_gridlinks <- function( month_YYYYMMs,
                         # d[, `:=` (uID = names(files)[i] )]
 
                         r <- rasterFromXYZ( d)
+                        if( !is.null( crop.extent))
+                          r <- crop( r, crop.extent)
+                        
                         return(r)
                       },
                       files.month)
