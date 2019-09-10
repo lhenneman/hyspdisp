@@ -10,8 +10,12 @@ combine_monthly_gridlinks <- function( month_YYYYMMs,
     print( paste( 'No rda_dir provided. Defaulting to', rda_dir))
   }
   dir.create(rda_dir, recursive = TRUE, showWarnings = F)
+  
+  # if crop.extent is defined, make sure it's on the same projection
+  if( !is.null( crop.extent))
+    crop.extent.proj <- projectExtent( crop.extent, p4s)
 
-
+  # check format of month_YYYYMMs
   if( length( unique( substr( month_YYYYMMs, 1, 4))) > 1)
     stop('please provide only month_YYYYMMs from only one year')
 
@@ -44,7 +48,7 @@ combine_monthly_gridlinks <- function( month_YYYYMMs,
 
                         r <- rasterFromXYZ( d)
                         if( !is.null( crop.extent))
-                          r <- crop( r, crop.extent)
+                          r <- crop( r, crop.extent.proj)
                         
                         return(r)
                       },
