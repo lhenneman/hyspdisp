@@ -44,7 +44,7 @@ combine_monthly_gridlinks <- function( month_YYYYMMs,
                                 files){
                         gc()
                         d <- fread( files[i],
-                                    drop = 'V1')
+                                    drop = 'V1', showProgress = FALSE)
                         setnames( d, 'hyspdisp', names(files)[i])
                         # d[, `:=` (uID = names(files)[i] )]
 
