@@ -38,17 +38,22 @@ combine_monthly_gridlinks <- function( month_YYYYMMs,
                        '', files.month)
     names(files.month) <- unitnames
 
+    pb <- txtProgressBar(min = 0, max = length( files.month), style = 3)
     data.h <- lapply( seq_along(files.month),
                       function( i,
                                 files){
+                        gc()
                         d <- fread( files[i],
                                     drop = 'V1')
                         setnames( d, 'hyspdisp', names(files)[i])
                         # d[, `:=` (uID = names(files)[i] )]
 
                         r <- rasterFromXYZ( d)
+                        rm( d)
                         if( !is.null( crop.extent))
                           r <- crop( r, crop.extent.proj)
+                        
+                        setTxtProgressBar(pb, i)
                         
                         return(r)
                       },
