@@ -102,7 +102,7 @@ link_zip <- function( d,
   }
 
   # check if extent of inputdata covers zipcodes
-  int <- intersect( spdf, zc)
+  int <- intersect( e, extent( zc))
   print( paste( 'int is', int))
   stop( paste( 'int is', int))
   if( is.null( int)){
