@@ -103,7 +103,10 @@ link_zip <- function( d,
 
   # check if extent of inputdata covers zipcodes
   int <- intersect( e, extent( zc))
+  stop( paste( 'int is', int), immediate. = TRUE)
   if( is.null( int)){
+    stop( 'no coverage in ZIP object')
+    print( 'whamambozzaga!')
     out <- data.table( ZIP = character(), N = numeric())
     return( out)
   }
