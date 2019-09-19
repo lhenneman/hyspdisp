@@ -102,10 +102,11 @@ link_zip <- function( d,
   }
 
   # check if extent of inputdata covers zipcodes
-  if( is.null( intersect( e, extent( zc)))){
+  int <- intersect( e, extent( zc))
+  if( is.null( int)){
     out <- data.table( ZIP = character(), N = numeric())
     return( out)
-    }
+  }
   
   #crop zip codes to only use ones over the extent
   zc_trim <- crop( zc, snap = 'out', e)
