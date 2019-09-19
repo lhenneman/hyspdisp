@@ -101,11 +101,14 @@ link_zip <- function( d,
     return( county.dt)
   }
 
-
+  # check if extent of inputdata covers zipcodes
+  if( is.null( intersect( e, extent( zc)))){
+    out <- data.table( ZIP = character(), N = numeric())
+    return( out)
+    }
+  
   #crop zip codes to only use ones over the extent
-  zc_trim <- crop( zc,
-                   snap = 'out',
-                   e)
+  zc_trim <- crop( zc, snap = 'out', e)
 
   zc_groups <- ceiling(seq_along(zc_trim) / 1000)
 
