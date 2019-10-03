@@ -99,7 +99,7 @@ hyspdisp_grid_link <- function( month_YYYYMM = NULL,
     print( paste( Sys.time(), "PBLs trimmed"))
 
     ## Link to grid
-    disp_df_link <- link_zip( d = d_trim,
+    out <- link_zip( d = d_trim,
                               p4string = p4s,
                               rasterin = hpbl_raster,
                               return.grid = T)
