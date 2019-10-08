@@ -85,7 +85,7 @@ hyspdisp_grid_link <- function( month_YYYYMM = NULL,
 
     ## Trim dates & first hour
     d <- d[d$Pdate %in% as( c( vec_dates), "character") &
-             hour > 1,]
+             hour > 1 & hour <= duration_run_hours,]
 
     #Check if extent matches the hpbl raster
     d_xmin <- min( d$lon)
