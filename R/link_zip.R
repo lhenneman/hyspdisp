@@ -104,6 +104,7 @@ link_zip <- function( d,
   # check if extent of inputdata covers zipcodes
   int <- intersect( e, extent( zc))
   if( length( int) == 0){
+    print('no ZIP overlap!')
     out <- data.table( ZIP = character(), N = numeric())
     return( out)
   }
