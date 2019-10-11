@@ -102,14 +102,14 @@ link_zip <- function( d,
   }
 
   # check if extent of inputdata covers zipcodes
-  e.zc <- extent( zc)
-  int <- intersect( e, e.zc)
-  print( e); print( extent( zc)); print( int)
-  if( length( int) == 0){
-    print('no ZIP overlap!')
-    out <- data.table( ZIP = character(), N = numeric())
-    return( out)
-  }
+  #e.zc <- extent( zc)
+  #int <- intersect( e, e.zc)
+  #print( e); print( extent( zc)); print( int)
+  #if( length( int) == 0){
+  #  print('no ZIP overlap!')
+  #  out <- data.table( ZIP = character(), N = numeric())
+  #  return( out)
+  #}
   
   #crop zip codes to only use ones over the extent
   zc_trim <- crop( zc, snap = 'out', e)
