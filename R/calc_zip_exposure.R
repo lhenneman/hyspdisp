@@ -89,7 +89,7 @@ calc_zip_exposure <- function(year.E,
       month_mapping_long[,`:=`( TrajPercent = as.double( TrajPercent))]
 
     #This is what I want - pollutant-weighted emissions trajectories
-    PP.linkage <- merge( month_mapping_long, PP_monthly, by = 'uID', all.x = T)
+    PP.linkage <- merge( month_mapping_long, PP_monthly, by = 'uID', all.y = T)
 
     #  clean house
     rm( list = c('month_mapping_long', 'PP_monthly', 'month_mapping'))
