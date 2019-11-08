@@ -25,7 +25,8 @@ link_zip <- function( d,
                       cw = NULL,
                       county.sp = NULL,
                       rasterin = NULL,
-                      return.grid = F){
+                      return.grid = F,
+                      pbl. = TRUE){
 
   if( is.null( rasterin) == T)
     stop( "Need PBL raster!")
@@ -59,7 +60,12 @@ link_zip <- function( d,
   cells <- cellFromXY( r, spdf)
   tab <- table( cells)
   pbls <- pbl_layer.d[as.numeric( names( tab))]
-  r[as.numeric( names( tab))] <- tab / pbls
+
+  # concentration - divide by pbl or not
+  if( pbl.){
+    r[as.numeric( names( tab))] <- tab / pbls
+  } else
+    r[as.numeric( names( tab))] <- tab / pbls
 
   # crop around point locations for faster extracting
   e <- extent(spdf)
