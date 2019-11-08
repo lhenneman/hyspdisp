@@ -10,7 +10,8 @@ hyspdisp_county_link <- function( month_YYYYMM = NULL,
                                   prc_dir = NULL,
                                   zpc_dir = NULL,
                                   hyo_dir = NULL,
-                                  hyo_dir2 = NULL){
+                                  hyo_dir2 = NULL,
+                                  return_linked_dataset = TRUE){
 
   if( (is.null( start_date) | is.null( end_date)) & is.null( month_YYYYMM))
     stop( "Define either a start_date and an end_date OR a month_YYYYMM")
@@ -115,12 +116,19 @@ hyspdisp_county_link <- function( month_YYYYMM = NULL,
       ## write to file
       write.csv( out,
                  zip_output_file)
-
       print( paste( Sys.time(), "Linked counties and saved to", zip_output_file))
     }
+   if( !return_linked_dataset)
+      out <- zip_output_file
+ 
+    
   } else {
     print( paste("File", zip_output_file, "already exists! Use overwrite = TRUE to over write"))
-    out <- fread( zip_output_file)
+    if( return_linked_dataset){
+      out <- fread( zip_output_file)
+    } else
+      out <- zip_output_file
+
   }
 
   return( out)

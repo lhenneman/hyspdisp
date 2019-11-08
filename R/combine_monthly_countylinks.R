@@ -36,6 +36,8 @@ combine_monthly_countylinks <- function( month_YYYYMMs,
                       function( i,
                                 files){
                          d <- fread( files[i], drop = 'V1')
+                        if( nrow( d) == 0)
+                          return(d)
                         d[, `:=` (uID = names(files)[i] )]
                         d <- d[ N > 0]
                         return(d)

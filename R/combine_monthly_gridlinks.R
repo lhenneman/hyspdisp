@@ -1,7 +1,8 @@
 combine_monthly_gridlinks <- function( month_YYYYMMs,
                                        zpc_dir,
                                        rda_dir = NULL,
-                                       p4s = "+proj=aea +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m"){
+                                       p4s = "+proj=aea +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m",
+                                       crop.extent = NULL){
 
   # Create directory to store RData files if it does not exist
   if( is.null( rda_dir)){
@@ -9,8 +10,12 @@ combine_monthly_gridlinks <- function( month_YYYYMMs,
     print( paste( 'No rda_dir provided. Defaulting to', rda_dir))
   }
   dir.create(rda_dir, recursive = TRUE, showWarnings = F)
+  
+  # if crop.extent is defined, make sure it's on the same projection
+  if( !is.null( crop.extent))
+    crop.extent.proj <- projectExtent( crop.extent, p4s)
 
-
+  # check format of month_YYYYMMs
   if( length( unique( substr( month_YYYYMMs, 1, 4))) > 1)
     stop('please provide only month_YYYYMMs from only one year')
 
@@ -33,15 +38,23 @@ combine_monthly_gridlinks <- function( month_YYYYMMs,
                        '', files.month)
     names(files.month) <- unitnames
 
+    pb <- txtProgressBar(min = 0, max = length( files.month), style = 3)
     data.h <- lapply( seq_along(files.month),
                       function( i,
                                 files){
+                        gc()
                         d <- fread( files[i],
-                                    drop = 'V1')
+                                    drop = 'V1', showProgress = FALSE)
                         setnames( d, 'hyspdisp', names(files)[i])
                         # d[, `:=` (uID = names(files)[i] )]
 
                         r <- rasterFromXYZ( d)
+                        rm( d)
+                        if( !is.null( crop.extent))
+                          r <- crop( r, crop.extent.proj)
+                        
+                        setTxtProgressBar(pb, i)
+                        
                         return(r)
                       },
                       files.month)
@@ -52,7 +65,7 @@ combine_monthly_gridlinks <- function( month_YYYYMMs,
     #apply extent to all rasters, brick it!
     data.h <- lapply( data.h, extend, data.h.e)
     MergedDT <- brick( data.h)
-    crs( MergedDT) <- CRS( p4s)
+    #crs( MergedDT) <- CRS( p4s)
 
     # assign to mappings
     name.map <- paste0("MAP", month.m, ".", year.h)

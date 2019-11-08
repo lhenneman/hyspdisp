@@ -11,7 +11,8 @@ hyspdisp_grid_link <- function( month_YYYYMM = NULL,
                                 prc_dir = NULL,
                                 zpc_dir = NULL,
                                 hyo_dir = NULL,
-                                hyo_dir2 = NULL){
+                                hyo_dir2 = NULL,
+                                return_linked_dataset = TRUE){
 
   if( (is.null( start_date) | is.null( end_date)) & is.null( month_YYYYMM))
     stop( "Define either a start_date and an end_date OR a month_YYYYMM")
@@ -85,7 +86,7 @@ hyspdisp_grid_link <- function( month_YYYYMM = NULL,
 
     ## Trim dates & first hour
     d <- d[d$Pdate %in% as( c( vec_dates), "character") &
-             hour > 1,]
+             hour > 1 & hour <= duration_run_hours,]
 
     #Check if extent matches the hpbl raster
     d_xmin <- min( d$lon)
@@ -102,7 +103,7 @@ hyspdisp_grid_link <- function( month_YYYYMM = NULL,
       d_trim <- d
 
     ## Link to grid
-    disp_df_link <- link_zip( d = d_trim,
+    out <- link_zip( d = d_trim,
                               p4string = p4s,
                               rasterin = hpbl_raster,
                               return.grid = T,
@@ -110,18 +111,24 @@ hyspdisp_grid_link <- function( month_YYYYMM = NULL,
 
     print(  paste( Sys.time(), "Grids linked"))
 
-    out <- disp_df_link
-
     if( nrow( out) != 0){
       ## write to file
       write.csv( out,
                  grid_output_file)
+      
+     if( !return_linked_dataset)
+        out <- grid_output_file
+ 
 
       print( paste( Sys.time(), "Linked ZIPs  and saved to", grid_output_file))
     }
   } else {
     print( paste("File", grid_output_file, "already exists! Use overwrite = TRUE to over write"))
-    out <- fread( grid_output_file)
+    
+    if( return_linked_dataset){
+       out <- fread( grid_output_file)
+      } else
+        out <- grid_output_file
   }
 
   return( out)
