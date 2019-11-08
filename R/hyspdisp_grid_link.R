@@ -7,6 +7,7 @@ hyspdisp_grid_link <- function( month_YYYYMM = NULL,
                                 hpbl_raster,
                                 overwrite = F,
                                 current_dir = getwd(),
+                                pbl_trim = TRUE,
                                 prc_dir = NULL,
                                 zpc_dir = NULL,
                                 hyo_dir = NULL,
@@ -93,15 +94,19 @@ hyspdisp_grid_link <- function( month_YYYYMM = NULL,
       hpbl_raster <- rotate( hpbl_raster)
 
     ## Trim PBL's
-    d_trim <- trim_pbl( d,
-                        rasterin = hpbl_raster)
-    print( paste( Sys.time(), "PBLs trimmed"))
+    if( pbl_trim){
+      d_trim <- trim_pbl( d,
+                          rasterin = hpbl_raster)
+      print( paste( Sys.time(), "PBLs trimmed"))
+    } else
+      d_trim <- d
 
     ## Link to grid
     disp_df_link <- link_zip( d = d_trim,
                               p4string = p4s,
                               rasterin = hpbl_raster,
-                              return.grid = T)
+                              return.grid = T,
+                              pbl. = pbl_trim)
 
     print(  paste( Sys.time(), "Grids linked"))
 
