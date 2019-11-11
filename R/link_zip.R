@@ -81,9 +81,8 @@ link_zip <- function( d,
                                        returnclass = c("sp"))
     usa.sub <- disaggregate(usa)[6,]
     crop.extent <- usa.sub
-    p4s = "+proj=aea +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m"
-    crop.extent.proj <- projectExtent( crop.extent, p4s)
-    r2 <- mask( r2, crop.extent.proj)
+    crop.extent.proj <- projectExtent( crop.extent, p4string)
+    r2 <- crop( r2, crop.extent.proj)
   }
 
   # if return.grid, return xyz object
