@@ -26,7 +26,8 @@ link_zip <- function( d,
                       county.sp = NULL,
                       rasterin = NULL,
                       return.grid = F,
-                      pbl. = TRUE){
+                      pbl. = TRUE,
+                      crop.usa = FALSE){
 
   if( is.null( rasterin) == T)
     stop( "Need PBL raster!")
@@ -72,6 +73,18 @@ link_zip <- function( d,
   r2 <- crop( trim(r,
                    padding = 1),
               e)
+
+  # mask around USA for smaller files
+  if( crop.usa){
+    usa <- rnaturalearth::ne_countries(scale = 110, type = "countries", country = "United States of America",
+                                       geounit = NULL, sovereignty = NULL,
+                                       returnclass = c("sp"))
+    usa.sub <- disaggregate(usa)[6,]
+    crop.extent <- usa.sub
+    p4s = "+proj=aea +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m"
+    crop.extent.proj <- projectExtent( crop.extent, p4s)
+    r2 <- mask( r2, crop.extent.proj)
+  }
 
   # if return.grid, return xyz object
   if( return.grid){

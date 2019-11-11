@@ -8,6 +8,7 @@ hyspdisp_grid_link <- function( month_YYYYMM = NULL,
                                 overwrite = F,
                                 current_dir = getwd(),
                                 pbl_trim = TRUE,
+                                crop.usa = FALSE,
                                 prc_dir = NULL,
                                 zpc_dir = NULL,
                                 hyo_dir = NULL,
@@ -104,10 +105,11 @@ hyspdisp_grid_link <- function( month_YYYYMM = NULL,
 
     ## Link to grid
     out <- link_zip( d = d_trim,
-                              p4string = p4s,
-                              rasterin = hpbl_raster,
-                              return.grid = T,
-                              pbl. = pbl_trim)
+                     p4string = p4s,
+                     rasterin = hpbl_raster,
+                     return.grid = T,
+                     pbl. = pbl_trim,
+                     crop.usa = crop.usa)
 
     print(  paste( Sys.time(), "Grids linked"))
 
@@ -115,20 +117,20 @@ hyspdisp_grid_link <- function( month_YYYYMM = NULL,
       ## write to file
       write.csv( out,
                  grid_output_file)
-      
-     if( !return_linked_dataset)
+
+      if( !return_linked_dataset)
         out <- grid_output_file
- 
+
 
       print( paste( Sys.time(), "Linked ZIPs  and saved to", grid_output_file))
     }
   } else {
     print( paste("File", grid_output_file, "already exists! Use overwrite = TRUE to over write"))
-    
+
     if( return_linked_dataset){
-       out <- fread( grid_output_file)
-      } else
-        out <- grid_output_file
+      out <- fread( grid_output_file)
+    } else
+      out <- grid_output_file
   }
 
   return( out)
