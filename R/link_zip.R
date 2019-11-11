@@ -65,7 +65,7 @@ link_zip <- function( d,
   if( pbl.){
     r[as.numeric( names( tab))] <- tab / pbls
   } else
-    r[as.numeric( names( tab))] <- tab / pbls
+    r[as.numeric( names( tab))] <- tab
 
   # crop around point locations for faster extracting
   e <- extent(spdf)
@@ -116,7 +116,7 @@ link_zip <- function( d,
   #  out <- data.table( ZIP = character(), N = numeric())
   #  return( out)
   #}
-  
+
   #crop zip codes to only use ones over the extent
   zc_trim <- crop( zc, snap = 'out', e)
 
