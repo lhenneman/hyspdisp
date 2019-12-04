@@ -8,6 +8,7 @@ hyspdisp_zip_link <- function( month_YYYYMM = NULL,
                                crosswalk,
                                overwrite = F,
                                current_dir = getwd(),
+                               pbl_trim = TRUE,
                                prc_dir = NULL,
                                zpc_dir = NULL,
                                hyo_dir = NULL,
@@ -95,15 +96,19 @@ hyspdisp_zip_link <- function( month_YYYYMM = NULL,
       hpbl_raster <- rotate( hpbl_raster)
 
     ## Trim PBL's
-    d_trim <- trim_pbl( d,
-                        rasterin = hpbl_raster)
-    print( paste( Sys.time(), "PBLs trimmed"))
+    if( pbl_trim){
+      d_trim <- trim_pbl( d,
+                          rasterin = hpbl_raster)
+      print( paste( Sys.time(), "PBLs trimmed"))
+    } else
+      d_trim <- d
 
     ## Link zips
     disp_df_link <- link_zip( d = d_trim,
                               zc = zcta2,
                               cw = crosswalk,
                               p4string = proj4string( zcta2),
+                              pbl. = pbl_trim,
                               rasterin = hpbl_raster)
 
     print(  paste( Sys.time(), "ZIPs linked"))
@@ -120,18 +125,18 @@ hyspdisp_zip_link <- function( month_YYYYMM = NULL,
                  zip_output_file)
 
       print( paste( Sys.time(), "Linked ZIPs and saved to", zip_output_file))
-      
+
       if( !return_linked_dataset)
         out <- zip_output_file
     } else {
       print( paste( Sys.time(), "No ZIPs to link!"))
-      
+
       if( !return_linked_dataset)
         out <- zip_output_file
-    }  
+    }
   } else {
     print( paste("File", zip_output_file, "already exists! Use overwrite = TRUE to over write"))
-    
+
     if( return_linked_dataset){
       out <- fread( zip_output_file)
       out$ZIP <- formatC( out$ZIP,
