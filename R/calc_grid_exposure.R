@@ -137,13 +137,22 @@ calc_grid_exposure <- function(year.E,
                 c( 'Exposure'),
                 c( 'hyads'))
 
-      ZIPexposures.c <- dcast( ZIPexposures, 
-                               x + y + yearmonth ~ uID,
-                               value.var = 'hyads')
+      if( source.agg == 'unit')
+        ZIPexposures.c <- dcast( ZIPexposures, 
+                                 x + y + yearmonth ~ uID,
+                                 value.var = 'hyads')
 
+      if( source.agg == 'facility')
+        ZIPexposures.c <- dcast( ZIPexposures, 
+                                 x + y + yearmonth ~ FacID,
+                                 value.var = 'hyads')
+
+      if( source.agg == 'total')
+        ZIPexposures.c <- ZIPexposures
+      
       # write to file, add monthly file to list if not empty data.table
       file.mo <- file.path( exp_dir,
-                            paste0( 'GRIDexposures_byunit_',
+                            paste0( 'GRIDexposures_by', source.agg, '_',
                                     paste0( year.E, '_', formatC( i, width = 2, flag = '0')),
                                     '.csv'))
       if( nrow( ZIPexposures) != 0){
